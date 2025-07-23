@@ -43,9 +43,9 @@ document.addEventListener('DOMContentLoaded', function () {
     if (users[usernameInput] === passwordInput) {
       localStorage.setItem('username', usernameInput);
       localStorage.setItem('loginTime', Date.now());
-      window.location.href = 'pick.html';
+      window.location.href = 'home.html';
     } else {
-      errorMsg.textContent = 'Invalid login. Try again.';
+      errorMsg.textContent = 'Invalid login idiot. Try again.';
     }
   });
 });
