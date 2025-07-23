@@ -2,6 +2,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Login - Shotgun League</title>
   <link rel="stylesheet" href="style.css">
   <script src="login.js" defer></script>
@@ -9,11 +10,10 @@
 <body>
   <h1>Login</h1>
   <form id="loginForm">
-    <label>Username: <input type="text" id="username" autocomplete="username"></label><br><br>
-    <label>Password: <input type="password" id="password" autocomplete="current-password"></label><br><br>
+    <label>Username: <input type="text" id="username" autocomplete="username"></label>
+    <label>Password: <input type="password" id="password" autocomplete="current-password"></label>
     <button type="submit">Login</button>
   </form>
   <p id="errorMsg" style="color:red;"></p>
-  <p><a href="index.html">Back to Home</a></p>
 </body>
 </html>

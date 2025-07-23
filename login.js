@@ -1,16 +1,16 @@
 
-const players = {'Aaron B.': 'honda', 'Alec B.': 'ford', 'Brad D.': 'chevy', 'Brad G.': 'toyota', 'Brad H.': 'nissan', 'Brian M.': 'jeep', 'Cal N.': 'mazda', 'Carter B.': 'volvo', 'Chuck P.': 'dodge', 'David H.': 'buick', 'Hunter': 'subaru', 'Ian F.': 'tesla', 'Jacob G.': 'fiat', 'Jim C.': 'gmc', 'Joe O.': 'bmw', 'Josh A.': 'audi', 'Justin G.': 'vw', 'Mike D.': 'ram', 'Mike K.': 'lincoln', 'Mitch M.': 'cadillac', 'Nick P.': 'hyundai', 'Riley B.': 'kia', 'Ryan L.': 'mini', 'Taylor H.': 'jaguar', 'Tim B.': 'landrover', 'Tom W.': 'mitsubishi', 'Trevor C.': 'infiniti', 'Zach W.': 'porsche'};
+const users = {'aaronb': 'honda', 'alecb': 'ford', 'bradd': 'chevy', 'bradg': 'toyota', 'bradh': 'nissan', 'brianm': 'jeep', 'caln': 'mazda', 'carterb': 'volvo', 'chuckp': 'dodge', 'davidh': 'buick', 'hunter': 'subaru', 'ianf': 'tesla', 'jacobg': 'fiat', 'jimc': 'gmc', 'joeo': 'bmw', 'josha': 'audi', 'justing': 'vw', 'miked': 'ram', 'mikek': 'lincoln', 'mitchm': 'cadillac', 'nickp': 'hyundai', 'rileyb': 'kia', 'ryanl': 'mini', 'taylorh': 'jaguar', 'timb': 'landrover', 'tomw': 'mitsubishi', 'trevorc': 'infiniti', 'zachw': 'porsche'};
 
 document.getElementById("loginForm").addEventListener("submit", function(e) {
   e.preventDefault();
-  const user = document.getElementById("username").value.trim();
-  const pw = document.getElementById("password").value.toLowerCase().trim();
-  const correct = players[user];
+  const username = document.getElementById("username").value.toLowerCase().replace(/[^a-z0-9]/g, '');
+  const password = document.getElementById("password").value.toLowerCase().trim();
+  const correct = users[username];
 
-  if (pw === correct) {
-    localStorage.setItem("user", user);
-    window.location.href = "pick.html";
+  if (password === correct) {
+    localStorage.setItem("user", username);
+    window.location.href = "home.html";
   } else {
-    document.getElementById("errorMsg").textContent = "Incorrect password.";
+    document.getElementById("errorMsg").textContent = "Incorrect username or password.";
   }
 });
