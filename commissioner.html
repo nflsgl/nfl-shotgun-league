@@ -1,0 +1,114 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Commissioner Tools - Shotgun League</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1em;
+    }
+    th, td {
+      border: 1px solid #aaa;
+      padding: 4px;
+      text-align: center;
+    }
+    select {
+      width: 100%;
+    }
+  </style>
+  <script>
+    const teams = [
+      "Arizona Cardinals", "Atlanta Falcons", "Baltimore Ravens", "Buffalo Bills", "Carolina Panthers",
+      "Chicago Bears", "Cincinnati Bengals", "Cleveland Browns", "Dallas Cowboys", "Denver Broncos",
+      "Detroit Lions", "Green Bay Packers", "Houston Texans", "Indianapolis Colts", "Jacksonville Jaguars",
+      "Kansas City Chiefs", "Las Vegas Raiders", "Los Angeles Chargers", "Los Angeles Rams", "Miami Dolphins",
+      "Minnesota Vikings", "New England Patriots", "New Orleans Saints", "New York Giants", "New York Jets",
+      "Philadelphia Eagles", "Pittsburgh Steelers", "San Francisco 49ers", "Seattle Seahawks", "Tampa Bay Buccaneers",
+      "Tennessee Titans", "Washington Commanders"
+    ];
+
+    document.addEventListener("DOMContentLoaded", function() {
+      const user = localStorage.getItem("user");
+      if (user !== "alecb" && user !== "mitchm") {
+        alert("Access denied.");
+        window.location.href = "/nfl-shotgun-league/home.html";
+        return;
+      }
+
+      const table = document.getElementById("picksTable");
+      const allPicks = JSON.parse(localStorage.getItem("allPicks") || "{}");
+
+      const users = Object.keys(allPicks).sort();
+      const weeks = Array.from({ length: 18 }, (_, i) => (i + 1).toString());
+
+      // Table header
+      const header = document.createElement("tr");
+      header.innerHTML = "<th>User</th>" + weeks.map(w => `<th>Week ${w}</th>`).join("");
+      table.appendChild(header);
+
+      // Table body
+      users.forEach(u => {
+        const row = document.createElement("tr");
+        row.innerHTML = `<td><strong>${u}</strong></td>`;
+        weeks.forEach(w => {
+          const select = document.createElement("select");
+          select.dataset.user = u;
+          select.dataset.week = w;
+
+          const blank = document.createElement("option");
+          blank.value = "";
+          blank.textContent = "--";
+          select.appendChild(blank);
+
+          teams.forEach(team => {
+            const option = document.createElement("option");
+            option.value = team;
+            option.textContent = team;
+            if (allPicks[u] && allPicks[u][w] === team) {
+              option.selected = true;
+            }
+            select.appendChild(option);
+          });
+
+          const td = document.createElement("td");
+          td.appendChild(select);
+          row.appendChild(td);
+        });
+        table.appendChild(row);
+      });
+
+      document.getElementById("saveBtn").addEventListener("click", function() {
+        const newPicks = {};
+        const selects = document.querySelectorAll("select[data-user][data-week]");
+        selects.forEach(s => {
+          const user = s.dataset.user;
+          const week = s.dataset.week;
+          const team = s.value;
+
+          if (!newPicks[user]) newPicks[user] = {};
+          if (team) newPicks[user][week] = team;
+        });
+        localStorage.setItem("allPicks", JSON.stringify(newPicks));
+        alert("Picks saved successfully.");
+      });
+    });
+  </script>
+</head>
+<body>
+  <div id="nav">
+    <a href="/nfl-shotgun-league/home.html">Home</a> |
+    <a href="/nfl-shotgun-league/pick.html">Submit Pick</a> |
+    <a href="/nfl-shotgun-league/leaderboard.html">Leaderboard</a> |
+    <a href="/nfl-shotgun-league/matrix.html">Matrix</a>
+  </div>
+
+  <h1>Commissioner Panel</h1>
+  <p>Edit any user's pick for any week. Changes are saved to localStorage only.</p>
+  <button id="saveBtn">💾 Save Changes</button>
+  <table id="picksTable"></table>
+</body>
+</html>
