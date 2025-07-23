@@ -1,0 +1,70 @@
+/* login.css */
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: Arial, sans-serif;
+  background: url('nfl-field-bg.jpg') no-repeat center center fixed;
+  background-size: cover;
+}
+
+.login-container {
+  background: rgba(255, 255, 255, 0.92);
+  max-width: 400px;
+  margin: 3em auto;
+  padding: 2em;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.login-container h1 {
+  text-align: center;
+  margin-bottom: 1em;
+  font-size: 1.4em;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+}
+
+input[type="text"],
+input[type="password"] {
+  padding: 0.75em;
+  margin-bottom: 1em;
+  font-size: 1em;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+button {
+  padding: 0.75em;
+  font-size: 1em;
+  border-radius: 6px;
+  border: none;
+  background-color: #0077cc;
+  color: white;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #005fa3;
+}
+
+#errorMsg {
+  text-align: center;
+  color: red;
+  margin-top: 0.5em;
+}
+
+/* Mobile responsive */
+@media (max-width: 500px) {
+  .login-container {
+    margin: 1.5em 1em;
+    padding: 1.5em;
+  }
+
+  h1 {
+    font-size: 1.2em;
+  }
+}
