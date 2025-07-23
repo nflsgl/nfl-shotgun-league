@@ -4,14 +4,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Submit Pick - Shotgun League</title>
   <link rel="stylesheet" href="style.css">
-  <script>
-    document.addEventListener("DOMContentLoaded", function() {
-      const user = localStorage.getItem("user");
-      if (!user) {
-        window.location.href = "/nfl-shotgun-league/index.html";
-      }
-    });
-  </script>
+  <script src="pick.js" defer></script>
 </head>
 <body>
   <div id="nav">
@@ -19,7 +12,30 @@
     <a href="/nfl-shotgun-league/leaderboard.html">Leaderboard</a> |
     <a href="/nfl-shotgun-league/matrix.html">Matrix</a>
   </div>
+
   <h1>Submit Your Pick</h1>
-  <!-- Pick form goes here -->
+
+  <form id="pickForm">
+    <label for="week">Select Week:</label>
+    <select id="week" required>
+      <option value="">-- Choose a week --</option>
+      <option value="1">Week 1 (Sep 5–9)</option>
+      <option value="2">Week 2 (Sep 12–16)</option>
+      <option value="3">Week 3 (Sep 19–23)</option>
+      <!-- Add more weeks here -->
+    </select>
+
+    <label for="team">Select Team:</label>
+    <select id="team" required>
+      <option value="">-- Choose a team --</option>
+      <option value="Detroit Lions">Detroit Lions</option>
+      <option value="Chicago Bears">Chicago Bears</option>
+      <option value="Green Bay Packers">Green Bay Packers</option>
+      <option value="Minnesota Vikings">Minnesota Vikings</option>
+      <!-- Add full list of teams -->
+    </select>
+
+    <button type="submit">Submit Pick</button>
+  </form>
 </body>
 </html>
