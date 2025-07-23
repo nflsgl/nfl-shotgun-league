@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', async function () {
   const teamSelect = document.getElementById('team');
   const form = document.getElementById('pickForm');
 
-  const picksCSV = await fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vRv9PUKq_JE6dUMgdoDYFsOZESjh2jD2gK40wLKiYsrCp6WALkdKJsxJeJ8ylYnGQLwStKjlLGrXMX9/pub?output=csv')
+  const picksCSV = await fetch('https://script.google.com/macros/s/AKfycbyrfxUujG62nPa8cJrfvjtJgZov0ix49PQr2bsVcNAgPl419EYJ2sY-Zi43GvMrHFrx/exec')
     .then(res => res.text());
 
   const allPicks = {};
