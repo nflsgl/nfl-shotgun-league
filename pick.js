@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   if (!user || !loginTime || now - loginTime > oneHour) {
     localStorage.clear();
-    window.location.href = 'index.html';
+    window.location.href = '/nfl-shotgun-league/index.html';
     return;
   }
 
