@@ -43,7 +43,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (users[usernameInput] === passwordInput) {
       localStorage.setItem('user', usernameInput);
       localStorage.setItem('loginTime', Date.now());
-      window.location.href = 'home.html';
+      window.location.href = '/nfl-shotgun-league/home.html';
     } else {
       errorMsg.textContent = 'Invalid login idiot. Try again.';
     }
