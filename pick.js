@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function () {
-  const user = localStorage.getItem('username');
+  const user = localStorage.getItem('user');
   const loginTime = parseInt(localStorage.getItem('loginTime'), 10);
   const now = Date.now();
   const oneHour = 60 * 60 * 1000;
