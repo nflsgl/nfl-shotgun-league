@@ -1,41 +1,68 @@
 
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Make Your Pick - Shotgun League</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Submit Pick - NFL Shotgun League</title>
   <link rel="stylesheet" href="style.css">
-  <script>
-    document.addEventListener("DOMContentLoaded", function() {
-      const user = localStorage.getItem("user");
-      if (!user) {
-        window.location.href = "login.html";
-      } else {
-        document.getElementById("welcome").textContent = "Welcome, " + user;
-      }
-    });
-  </script>
+  <script defer src="pick.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 1em;
+      max-width: 600px;
+      margin: auto;
+      background: #f2f2f2;
+    }
+    h2 {
+      text-align: center;
+    }
+    label {
+      display: block;
+      margin-top: 1.2em;
+      font-weight: bold;
+    }
+    select, button {
+      width: 100%;
+      padding: 0.75em;
+      margin-top: 0.5em;
+      font-size: 1em;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+    button {
+      background-color: #0077cc;
+      color: white;
+      border: none;
+      margin-top: 1.5em;
+    }
+    button:hover {
+      background-color: #005fa3;
+    }
+  </style>
 </head>
 <body>
-  
-<div id="nav">
-  <a href="index.html">Home</a> |
-  <a href="pick.html">Submit Pick</a> |
-  <a href="leaderboard.html">Leaderboard</a> |
-  <a href="matrix.html">Matrix</a>
-</div>
+  <h2>Submit Your Pick</h2>
+  <form id="pickForm">
+    <label for="week">Select Week:</label>
+    <select id="week" required>
+      <option value="1">Week 1 (Sep 5–9)</option>
+    </select>
 
-  <h1 id="welcome">Welcome</h1>
-  <form>
-    <label>Pick your team:
-      <select>
-        <option>Chiefs</option>
-        <option>Bills</option>
-        <option>49ers</option>
-        <option>Packers</option>
-        <option>Dolphins</option>
-        <option>Cowboys</option>
-      </select>
-    </label><br>
+    <label for="team">Select Team:</label>
+    <select id="team" required>
+      <option value="">-- Choose a team --</option>
+      <option value="Chicago Bears">Chicago Bears (vs Detroit Lions) [-130]</option>
+      <option value="Detroit Lions">Detroit Lions (@ Chicago Bears) [+110]</option>
+      <option value="Kansas City Chiefs">Kansas City Chiefs (vs Cincinnati Bengals) [-150]</option>
+      <option value="Cincinnati Bengals">Cincinnati Bengals (@ Kansas City Chiefs) [+125]</option>
+      <option value="Miami Dolphins">Miami Dolphins (vs New York Jets) [-115]</option>
+      <option value="New York Jets">New York Jets (@ Miami Dolphins) [-105]</option>
+      <option value="Buffalo Bills">Buffalo Bills (vs New England Patriots) [-140]</option>
+      <option value="New England Patriots">New England Patriots (@ Buffalo Bills) [+120]</option>
+    </select>
+
     <button type="submit">Submit Pick</button>
   </form>
 </body>
