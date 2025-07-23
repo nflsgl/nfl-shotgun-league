@@ -41,7 +41,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const passwordInput = document.getElementById('password').value.toLowerCase();
 
     if (users[usernameInput] === passwordInput) {
-      localStorage.setItem('username', usernameInput);
+      localStorage.setItem('user', usernameInput);
       localStorage.setItem('loginTime', Date.now());
       window.location.href = 'home.html';
     } else {
