@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', async function () {
   const teamSelect = document.getElementById('team');
   const form = document.getElementById('pickForm');
 
-  const picksCSV = await fetch('https://script.google.com/macros/s/AKfycbyrfxUujG62nPa8cJrfvjtJgZov0ix49PQr2bsVcNAgPl419EYJ2sY-Zi43GvMrHFrx/exec')
+  const picksCSV = await fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vRv9PUKq_JE6dUMgdoDYFsOZESjh2jD2gK40wLKiYsrCp6WALkdKJsxJeJ8ylYnGQLwStKjlLGrXMX9/pub?output=csv')
     .then(res => res.text());
 
   const allPicks = {};
@@ -91,7 +91,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     };
 
     try {
-      const response = await fetch('https://script.google.com/macros/s/AKfycbwA-PGrBpDfHv3mT47lyh6_eLHsszFAxch-OwcNZIZgUBirDCdDh0oPx33JfCWiOxor/exec', {
+      const response = await fetch('https://script.google.com/macros/s/AKfycbyrfxUujG62nPa8cJrfvjtJgZov0ix49PQr2bsVcNAgPl419EYJ2sY-Zi43GvMrHFrx/exec', {
         method: 'POST',
         body: JSON.stringify(submission),
         headers: {
