@@ -1,45 +1,51 @@
+document.addEventListener('DOMContentLoaded', function () {
+  const form = document.getElementById('loginForm');
+  const errorMsg = document.getElementById('errorMsg');
 
-const users = {
-  aaronb: "honda",
-  alecb: "ford",
-  bradd: "chevy",
-  bradg: "toyota",
-  bradh: "nissan",
-  brianm: "jeep",
-  caln: "mazda",
-  carterb: "volvo",
-  chuckp: "dodge",
-  davidh: "buick",
-  hunter: "subaru",
-  ianf: "tesla",
-  jacobg: "fiat",
-  jimc: "gmc",
-  joeo: "bmw",
-  josha: "audi",
-  justing: "vw",
-  miked: "ram",
-  mikek: "lincoln",
-  mitchm: "cadillac",
-  nickp: "hyundai",
-  rileyb: "kia",
-  ryanl: "mini",
-  taylorh: "jaguar",
-  timb: "landrover",
-  tomw: "mitsubishi",
-  trevorc: "infiniti",
-  zachw: "porsche"
-};
+  // Simple username-password map
+  const users = {
+    "aaronb": "honda",
+    "alecb": "toyota",
+    "bradd": "chevy",
+    "bradg": "ford",
+    "bradh": "mazda",
+    "brianm": "nissan",
+    "caln": "subaru",
+    "carterb": "bmw",
+    "chuckp": "audi",
+    "davidh": "volvo",
+    "hunter": "dodge",
+    "ianf": "gmc",
+    "jacobg": "jeep",
+    "jimc": "lexus",
+    "joseph": "buick",
+    "joshua": "acura",
+    "justing": "vw",
+    "miked": "hyundai",
+    "mikek": "kia",
+    "mitchm": "ram",
+    "nickp": "tesla",
+    "rileyb": "pontiac",
+    "ryanl": "cadillac",
+    "taylorh": "infiniti",
+    "timb": "lincoln",
+    "tomw": "chrysler",
+    "trevorc": "mini",
+    "zachw": "fiat"
+  };
 
-document.getElementById("loginForm").addEventListener("submit", function(e) {
-  e.preventDefault();
-  const usernameInput = document.getElementById("username").value.toLowerCase().replace(/[^a-z0-9]/g, '');
-  const passwordInput = document.getElementById("password").value.toLowerCase().trim();
-  const correctPassword = users[usernameInput];
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
 
-  if (passwordInput === correctPassword) {
-    localStorage.setItem("user", usernameInput);
-    window.location.href = "home.html";
-  } else {
-    document.getElementById("errorMsg").textContent = "Incorrect username or password.";
-  }
+    const usernameInput = document.getElementById('username').value.toLowerCase().replace(/\s/g, '');
+    const passwordInput = document.getElementById('password').value.toLowerCase();
+
+    if (users[usernameInput] === passwordInput) {
+      localStorage.setItem('username', usernameInput);
+      localStorage.setItem('loginTime', Date.now());
+      window.location.href = 'pick.html';
+    } else {
+      errorMsg.textContent = 'Invalid login. Try again.';
+    }
+  });
 });
