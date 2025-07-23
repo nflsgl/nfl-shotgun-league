@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -14,15 +15,20 @@
       font: inherit;
       padding: 0;
     }
+    #pickNotice {
+      margin-top: 1em;
+      font-weight: bold;
+    }
   </style>
   <script>
     document.addEventListener("DOMContentLoaded", function() {
       const user = localStorage.getItem("user");
       if (!user) {
         window.location.href = "/nfl-shotgun-league/index.html";
-      } else {
-        document.getElementById("welcome").textContent = "Welcome, " + user;
+        return;
       }
+
+      document.getElementById("welcome").textContent = "Welcome, " + user;
 
       const logoutBtn = document.getElementById("logoutBtn");
       if (logoutBtn) {
@@ -32,6 +38,23 @@
             window.location.href = "/nfl-shotgun-league/index.html";
           }
         });
+      }
+
+      // Show pick status
+      const allPicks = JSON.parse(localStorage.getItem("allPicks") || "{}");
+      const userPicks = allPicks[user] || {};
+      const currentWeek = localStorage.getItem("currentWeek") || "1";
+      const pickedTeam = userPicks[currentWeek];
+
+      if (pickedTeam) {
+        const pickMsg = document.createElement("p");
+        pickMsg.id = "pickNotice";
+        pickMsg.innerHTML = `
+          You have already selected <strong>${pickedTeam}</strong> for Week ${currentWeek}.<br>
+          If you want to change your pick, press <a href="/nfl-shotgun-league/pick.html">Submit Pick</a> again.<br>
+          You will not be able to change your pick once your selected team has kicked off.
+        `;
+        document.getElementById("welcome").insertAdjacentElement("afterend", pickMsg);
       }
     });
   </script>
