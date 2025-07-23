@@ -1,0 +1,35 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Make Your Pick - Shotgun League</title>
+  <link rel="stylesheet" href="style.css">
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      const user = sessionStorage.getItem("user");
+      if (!user) {{
+        window.location.href = "login.html";
+      }} else {{
+        document.getElementById("welcome").textContent = "Welcome, " + user;
+      }}
+    });
+  </script>
+</head>
+<body>
+  <h1 id="welcome">Welcome</h1>
+  <form>
+    <label>Pick your team:
+      <select>
+        <option>Chiefs</option>
+        <option>Bills</option>
+        <option>49ers</option>
+        <option>Packers</option>
+        <option>Dolphins</option>
+        <option>Cowboys</option>
+      </select>
+    </label><br>
+    <button type="submit">Submit Pick</button>
+  </form>
+  <p><a href="index.html">Back to Home</a></p>
+</body>
+</html>
