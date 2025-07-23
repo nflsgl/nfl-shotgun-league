@@ -3,19 +3,21 @@
 <html>
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Login - Shotgun League</title>
+  <title>Login - NFL Shotgun League</title>
   <link rel="stylesheet" href="style.css">
   <script src="login.js" defer></script>
 </head>
-<body>
-  <h1>Login</h1>
-  <form id="loginForm">
-    <label for="username">Username:</label>
-    <input type="text" id="username" autocomplete="username">
-    <label for="password">Password:</label>
-    <input type="password" id="password" autocomplete="current-password">
-    <button type="submit">Login</button>
-  </form>
-  <p id="errorMsg" style="color:red;"></p>
+<body class="login-bg">
+  <div class="login-container">
+    <h1>2025–2026 NFL Shotgun League</h1>
+    <form id="loginForm">
+      <label for="username">Username:</label>
+      <input type="text" id="username" autocomplete="username" placeholder="e.g. alecb" required>
+      <label for="password">Password:</label>
+      <input type="password" id="password" autocomplete="current-password" placeholder="car brand" required>
+      <button type="submit">Login</button>
+    </form>
+    <p id="errorMsg" style="color:red;"></p>
+  </div>
 </body>
 </html>
