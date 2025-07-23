@@ -19,9 +19,26 @@
       margin-top: 1em;
       font-weight: bold;
     }
+    .team-logo {
+      display: inline-block;
+      vertical-align: middle;
+      width: 28px;
+      height: 28px;
+      margin-right: 8px;
+    }
   </style>
   <script src="/nfl-shotgun-league/schedule.js"></script>
   <script>
+    const teamLogos = {
+      "Philadelphia Eagles": "eagles.png",
+      "Dallas Cowboys": "cowboys.png",
+      "Kansas City Chiefs": "chiefs.png",
+      "Los Angeles Chargers": "chargers.png",
+      "Minnesota Vikings": "vikings.png",
+      "Chicago Bears": "bears.png"
+      // Add all 32 team mappings here with your actual logo filenames
+    };
+
     document.addEventListener("DOMContentLoaded", function() {
       const user = localStorage.getItem("user");
       if (!user) {
@@ -57,7 +74,6 @@
         if (currentWeek) break;
       }
 
-      // Fallback if all games are in the past
       if (!currentWeek) {
         const weeks = Object.keys(schedule).sort((a, b) => parseInt(a) - parseInt(b));
         currentWeek = weeks[weeks.length - 1];
@@ -74,11 +90,12 @@
       pickMsg.id = "pickNotice";
 
       if (pickedTeam) {
+        const logoFile = teamLogos[pickedTeam] || "default.png";
+        const logoImg = `<img src="/nfl-shotgun-league/logos/${logoFile}" alt="${pickedTeam}" class="team-logo">`;
         pickMsg.innerHTML = `
+          ${logoImg}
           You have already selected <strong>${pickedTeam}</strong> for Week ${currentWeek}.<br>
-          
           If you want to change your pick, press <a href="/nfl-shotgun-league/pick.html">Submit Pick</a> again.<br>
-          
           You will not be able to change your pick once your selected team has kicked off.
         `;
       } else {
@@ -89,6 +106,15 @@
       }
 
       document.getElementById("welcome").insertAdjacentElement("afterend", pickMsg);
+
+      // Commissioner link
+      if (user === "alecb" || user === "mitchm") {
+        const commishLink = document.createElement("p");
+        commishLink.innerHTML = `
+          <a href="/nfl-shotgun-league/commissioner.html">🛠️ Commissioner Panel</a>
+        `;
+        pickMsg.insertAdjacentElement("afterend", commishLink);
+      }
     });
   </script>
 </head>
