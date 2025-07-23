@@ -14,8 +14,6 @@ document.addEventListener('DOMContentLoaded', function () {
   const weekSelect = document.getElementById('week');
   const teamSelect = document.getElementById('team');
   const form = document.getElementById('pickForm');
-  const matchupDisplay = document.getElementById('matchup');
-  const oddsDisplay = document.getElementById('odds');
 
   const allPicks = JSON.parse(localStorage.getItem('allPicks')) || {};
   const userPicks = allPicks[user] || {};
@@ -32,8 +30,6 @@ document.addEventListener('DOMContentLoaded', function () {
   weekSelect.addEventListener('change', function () {
     const selectedWeek = weekSelect.value;
     teamSelect.innerHTML = '<option value="">-- Choose a team --</option>';
-    matchupDisplay.innerHTML = '';
-    oddsDisplay.innerHTML = '';
 
     if (!schedule[selectedWeek]) return;
 
@@ -41,13 +37,11 @@ document.addEventListener('DOMContentLoaded', function () {
     const teamMap = {};
 
     schedule[selectedWeek].forEach(game => {
-      // Home team entry
       teamMap[game.home] = {
         opponent: game.away,
         location: "vs",
         odds: game.odds || {}
       };
-      // Away team entry
       teamMap[game.away] = {
         opponent: game.home,
         location: "@",
@@ -59,7 +53,12 @@ document.addEventListener('DOMContentLoaded', function () {
       const option = document.createElement("option");
       option.value = team;
       const t = teamMap[team];
-      option.textContent = `${team} (${t.location} ${t.opponent})`;
+      const spread = t.odds?.spread || {};
+      const spreadValue = spread[team] !== undefined
+        ? (spread[team] > 0 ? '+' : '') + spread[team]
+        : '';
+      option.textContent = `${team} ${spreadValue} (${t.location} ${t.opponent})`;
+
       if (usedTeams.includes(team)) {
         option.disabled = true;
         option.textContent += ' (already used)';
@@ -70,35 +69,6 @@ document.addEventListener('DOMContentLoaded', function () {
     // Pre-select if pick exists
     if (userPicks[selectedWeek]) {
       teamSelect.value = userPicks[selectedWeek];
-      teamSelect.dispatchEvent(new Event('change'));
-    }
-  });
-
-  // Show matchup + odds when a team is selected
-  teamSelect.addEventListener('change', function () {
-    const selectedWeek = weekSelect.value;
-    const selectedTeam = teamSelect.value;
-    matchupDisplay.innerHTML = '';
-    oddsDisplay.innerHTML = '';
-
-    if (!selectedTeam || !schedule[selectedWeek]) return;
-
-    const game = schedule[selectedWeek].find(
-      g => g.home === selectedTeam || g.away === selectedTeam
-    );
-
-    if (game) {
-      const opponent = game.home === selectedTeam ? game.away : game.home;
-      const location = game.home === selectedTeam ? "vs" : "@";
-      matchupDisplay.textContent = `${selectedTeam} (${location} ${opponent})`;
-
-      if (game.odds) {
-        const ml = game.odds.moneyline || {};
-        const spread = game.odds.spread || {};
-        const mlText = `Moneyline: ${selectedTeam} ${ml[selectedTeam] ?? '-'} / ${opponent} ${ml[opponent] ?? '-'}`;
-        const spText = `Spread: ${selectedTeam} ${spread[selectedTeam] ?? '-'} / ${opponent} ${spread[opponent] ?? '-'}`;
-        oddsDisplay.innerHTML = `<p>${mlText}</p><p>${spText}</p>`;
-      }
     }
   });
 
@@ -117,7 +87,6 @@ document.addEventListener('DOMContentLoaded', function () {
     allPicks[user][week] = team;
     localStorage.setItem('allPicks', JSON.stringify(allPicks));
 
-    // Confirmation display
     form.innerHTML = `
       <h3>✅ Pick recorded!</h3>
       <p><strong>${team}</strong> has been submitted for Week ${week}.</p>
