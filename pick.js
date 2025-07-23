@@ -1,3 +1,4 @@
+
 document.addEventListener('DOMContentLoaded', function () {
   const user = localStorage.getItem('user');
   const loginTime = parseInt(localStorage.getItem('loginTime'), 10);
@@ -13,25 +14,95 @@ document.addEventListener('DOMContentLoaded', function () {
   const weekSelect = document.getElementById('week');
   const teamSelect = document.getElementById('team');
   const form = document.getElementById('pickForm');
+  const matchupDisplay = document.getElementById('matchup');
+  const oddsDisplay = document.getElementById('odds');
 
   const allPicks = JSON.parse(localStorage.getItem('allPicks')) || {};
   const userPicks = allPicks[user] || {};
 
-  // Hide used teams
-  const usedTeams = Object.values(userPicks);
-  for (const option of [...teamSelect.options]) {
-    if (usedTeams.includes(option.value)) {
-      option.disabled = true;
-      option.textContent += ' (already used)';
+  // Populate week dropdown from schedule
+  Object.keys(schedule).forEach(week => {
+    const option = document.createElement("option");
+    option.value = week;
+    option.textContent = `Week ${week}`;
+    weekSelect.appendChild(option);
+  });
+
+  // Update team dropdown when a week is selected
+  weekSelect.addEventListener('change', function () {
+    const selectedWeek = weekSelect.value;
+    teamSelect.innerHTML = '<option value="">-- Choose a team --</option>';
+    matchupDisplay.innerHTML = '';
+    oddsDisplay.innerHTML = '';
+
+    if (!schedule[selectedWeek]) return;
+
+    const usedTeams = Object.values(userPicks);
+    const teamMap = {};
+
+    schedule[selectedWeek].forEach(game => {
+      // Home team entry
+      teamMap[game.home] = {
+        opponent: game.away,
+        location: "vs",
+        odds: game.odds || {}
+      };
+      // Away team entry
+      teamMap[game.away] = {
+        opponent: game.home,
+        location: "@",
+        odds: game.odds || {}
+      };
+    });
+
+    Object.keys(teamMap).forEach(team => {
+      const option = document.createElement("option");
+      option.value = team;
+      const t = teamMap[team];
+      option.textContent = `${team} (${t.location} ${t.opponent})`;
+      if (usedTeams.includes(team)) {
+        option.disabled = true;
+        option.textContent += ' (already used)';
+      }
+      teamSelect.appendChild(option);
+    });
+
+    // Pre-select if pick exists
+    if (userPicks[selectedWeek]) {
+      teamSelect.value = userPicks[selectedWeek];
+      teamSelect.dispatchEvent(new Event('change'));
     }
-  }
+  });
 
-  // Pre-fill if a pick exists
-  const selectedWeek = weekSelect.value;
-  if (userPicks[selectedWeek]) {
-    teamSelect.value = userPicks[selectedWeek];
-  }
+  // Show matchup + odds when a team is selected
+  teamSelect.addEventListener('change', function () {
+    const selectedWeek = weekSelect.value;
+    const selectedTeam = teamSelect.value;
+    matchupDisplay.innerHTML = '';
+    oddsDisplay.innerHTML = '';
 
+    if (!selectedTeam || !schedule[selectedWeek]) return;
+
+    const game = schedule[selectedWeek].find(
+      g => g.home === selectedTeam || g.away === selectedTeam
+    );
+
+    if (game) {
+      const opponent = game.home === selectedTeam ? game.away : game.home;
+      const location = game.home === selectedTeam ? "vs" : "@";
+      matchupDisplay.textContent = `${selectedTeam} (${location} ${opponent})`;
+
+      if (game.odds) {
+        const ml = game.odds.moneyline || {};
+        const spread = game.odds.spread || {};
+        const mlText = `Moneyline: ${selectedTeam} ${ml[selectedTeam] ?? '-'} / ${opponent} ${ml[opponent] ?? '-'}`;
+        const spText = `Spread: ${selectedTeam} ${spread[selectedTeam] ?? '-'} / ${opponent} ${spread[opponent] ?? '-'}`;
+        oddsDisplay.innerHTML = `<p>${mlText}</p><p>${spText}</p>`;
+      }
+    }
+  });
+
+  // Handle form submission
   form.addEventListener('submit', function (e) {
     e.preventDefault();
     const team = teamSelect.value;
