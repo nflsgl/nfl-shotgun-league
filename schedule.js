@@ -6,12 +6,12 @@ const schedule = {
       "date": "2025-09-04",
       "odds": {
         "moneyline": {
-          "home": -325,
-          "away": 260
+          "Philadelphia Eagles": -325,
+          "Dallas Cowboys": 260
         },
         "spread": {
-          "home": -7,
-          "away": 7
+          "Philadelphia Eagles": -7,
+          "Dallas Cowboys": 7
         }
       }
     },
@@ -21,12 +21,12 @@ const schedule = {
       "date": "2025-09-05",
       "odds": {
         "moneyline": {
-          "home": -148,
-          "away": 124
+          "Kansas City Chiefs": -148,
+          "Los Angeles Chargers": 124
         },
         "spread": {
-          "home": -3,
-          "away": 3
+          "Kansas City Chiefs": -3,
+          "Los Angeles Chargers": 3
         }
       }
     },
@@ -36,12 +36,12 @@ const schedule = {
       "date": "2025-09-08",
       "odds": {
         "moneyline": {
-          "home": -110,
-          "away": -106
+          "Minnesota Vikings": -110,
+          "Chicago Bears": -106
         },
         "spread": {
-          "home": -1.5,
-          "away": 1.5
+          "Minnesota Vikings": -1.5,
+          "Chicago Bears": 1.5
         }
       }
     }
