@@ -1,8 +1,12 @@
-
 document.addEventListener('DOMContentLoaded', function () {
-  const user = sessionStorage.getItem('username');
-  if (!user) {
-    window.location.href = 'index.html'; // redirect if not logged in
+  const user = localStorage.getItem('username');
+  const loginTime = parseInt(localStorage.getItem('loginTime'), 10);
+  const now = Date.now();
+  const oneHour = 60 * 60 * 1000;
+
+  if (!user || !loginTime || now - loginTime > oneHour) {
+    localStorage.clear();
+    window.location.href = 'index.html';
     return;
   }
 
@@ -13,7 +17,7 @@ document.addEventListener('DOMContentLoaded', function () {
   const allPicks = JSON.parse(localStorage.getItem('allPicks')) || {};
   const userPicks = allPicks[user] || {};
 
-  // Hide used teams from dropdown (Week 1 only for now)
+  // Hide used teams
   const usedTeams = Object.values(userPicks);
   for (const option of [...teamSelect.options]) {
     if (usedTeams.includes(option.value)) {
@@ -22,7 +26,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   }
 
-  // Prefill if pick exists for this week
+  // Pre-fill if a pick exists
   const selectedWeek = weekSelect.value;
   if (userPicks[selectedWeek]) {
     teamSelect.value = userPicks[selectedWeek];
@@ -38,10 +42,11 @@ document.addEventListener('DOMContentLoaded', function () {
     if (!allPicks[user]) {
       allPicks[user] = {};
     }
+
     allPicks[user][week] = team;
     localStorage.setItem('allPicks', JSON.stringify(allPicks));
 
-    // Show confirmation
+    // Confirmation display
     form.innerHTML = `
       <h3>✅ Pick recorded!</h3>
       <p><strong>${team}</strong> has been submitted for Week ${week}.</p>
