@@ -1,5 +1,4 @@
-
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', async function () {
   const user = localStorage.getItem('user');
   const loginTime = parseInt(localStorage.getItem('loginTime'), 10);
   const now = Date.now();
@@ -11,86 +10,72 @@ document.addEventListener('DOMContentLoaded', function () {
     return;
   }
 
+  const form = document.getElementById('pickForm');
   const weekSelect = document.getElementById('week');
   const teamSelect = document.getElementById('team');
-  const form = document.getElementById('pickForm');
 
-  const allPicks = JSON.parse(localStorage.getItem('allPicks')) || {};
+  // Fetch all existing picks (read-only)
+  const picksCSV = await fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vRv9PUKq_JE6dUMgdoDYFsOZESjh2jD2gK40wLKiYsrCp6WALkdKJsxJeJ8ylYnGQLwStKjlLGrXMX9/pub?output=csv')
+    .then(res => res.text());
+
+  const allPicks = {};
+  picksCSV.trim().split('\n').slice(1).forEach(row => {
+    const [username, week, team] = row.split(',');
+    const uname = username.toLowerCase().trim();
+    if (!allPicks[uname]) allPicks[uname] = {};
+    allPicks[uname][week.trim()] = team.trim();
+  });
+
   const userPicks = allPicks[user] || {};
+  const usedTeams = Object.values(userPicks);
 
-  // Populate week dropdown from schedule
-  Object.keys(schedule).forEach(week => {
-    const option = document.createElement("option");
-    option.value = week;
-    option.textContent = `Week ${week}`;
-    weekSelect.appendChild(option);
-  });
-
-  // Update team dropdown when a week is selected
-  weekSelect.addEventListener('change', function () {
-    const selectedWeek = weekSelect.value;
-    teamSelect.innerHTML = '<option value="">-- Choose a team --</option>';
-
-    if (!schedule[selectedWeek]) return;
-
-    const usedTeams = Object.values(userPicks);
-    const teamMap = {};
-
-    schedule[selectedWeek].forEach(game => {
-      teamMap[game.home] = {
-        opponent: game.away,
-        location: "vs",
-        odds: game.odds || {}
-      };
-      teamMap[game.away] = {
-        opponent: game.home,
-        location: "@",
-        odds: game.odds || {}
-      };
-    });
-
-    Object.keys(teamMap).forEach(team => {
-      const option = document.createElement("option");
-      option.value = team;
-      const t = teamMap[team];
-      const spread = t.odds?.spread || {};
-      const spreadValue = spread[team] !== undefined
-        ? (spread[team] > 0 ? '+' : '') + spread[team]
-        : '';
-      option.textContent = `${team} ${spreadValue} (${t.location} ${t.opponent})`;
-
-      if (usedTeams.includes(team)) {
-        option.disabled = true;
-        option.textContent += ' (already used)';
-      }
-      teamSelect.appendChild(option);
-    });
-
-    // Pre-select if pick exists
-    if (userPicks[selectedWeek]) {
-      teamSelect.value = userPicks[selectedWeek];
+  // Disable used teams in the dropdown
+  for (const option of [...teamSelect.options]) {
+    if (usedTeams.includes(option.value)) {
+      option.disabled = true;
+      option.textContent += ' (already used)';
     }
-  });
+  }
+
+  // Pre-fill if a pick exists
+  const selectedWeek = weekSelect.value;
+  if (userPicks[selectedWeek]) {
+    teamSelect.value = userPicks[selectedWeek];
+  }
 
   // Handle form submission
-  form.addEventListener('submit', function (e) {
+  form.addEventListener('submit', async function (e) {
     e.preventDefault();
-    const team = teamSelect.value;
     const week = weekSelect.value;
+    const team = teamSelect.value;
 
-    if (!team || !week) return;
+    if (!week || !team) return;
 
-    if (!allPicks[user]) {
-      allPicks[user] = {};
+    const submission = {
+      username: user,
+      week: week,
+      team: team
+    };
+
+    try {
+      const response = await fetch('https://script.google.com/macros/s/AKfycbwA-PGrBpDfHv3mT47lyh6_eLHsszFAxch-OwcNZIZgUBirDCdDh0oPx33JfCWiOxor/exec', {
+        method: 'POST',
+        body: JSON.stringify(submission),
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
+      const result = await response.text();
+
+      // Show confirmation
+      form.innerHTML = `
+        <h3>✅ ${result}</h3>
+        <p><strong>${team}</strong> has been submitted for Week ${week}.</p>
+        <button onclick="window.location.reload()">Make Another Pick</button>
+      `;
+    } catch (err) {
+      alert("Failed to submit pick: " + err.message);
     }
-
-    allPicks[user][week] = team;
-    localStorage.setItem('allPicks', JSON.stringify(allPicks));
-
-    form.innerHTML = `
-      <h3>✅ Pick recorded!</h3>
-      <p><strong>${team}</strong> has been submitted for Week ${week}.</p>
-      <button onclick="window.location.reload()">Make Another Pick</button>
-    `;
   });
 });
