@@ -1,13 +1,25 @@
-
 <!DOCTYPE html>
 <html>
 <head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Leaderboard - Shotgun League</title>
   <link rel="stylesheet" href="style.css">
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      const user = localStorage.getItem("user");
+      if (!user) {
+        window.location.href = "/nfl-shotgun-league/index.html";
+      }
+    });
+  </script>
 </head>
 <body>
+  <div id="nav">
+    <a href="/nfl-shotgun-league/home.html">Home</a> |
+    <a href="/nfl-shotgun-league/pick.html">Submit Pick</a> |
+    <a href="/nfl-shotgun-league/matrix.html">Matrix</a>
+  </div>
   <h1>Leaderboard</h1>
-  <p>Coming soon...</p>
-  <p><a href="index.html">Back to Home</a></p>
+  <!-- Leaderboard content goes here -->
 </body>
 </html>
