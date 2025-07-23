@@ -20,6 +20,7 @@
       font-weight: bold;
     }
   </style>
+  <script src="/nfl-shotgun-league/schedule.js"></script>
   <script>
     document.addEventListener("DOMContentLoaded", function() {
       const user = localStorage.getItem("user");
@@ -40,22 +41,51 @@
         });
       }
 
+      // Determine current NFL week based on today's date
+      const today = new Date();
+      let currentWeek = null;
+
+      for (const [week, games] of Object.entries(schedule)) {
+        for (const game of games) {
+          const gameDate = new Date(game.date);
+          if (today <= gameDate) {
+            currentWeek = week;
+            break;
+          }
+        }
+        if (currentWeek) break;
+      }
+
+      // Fallback if all games are in the past
+      if (!currentWeek) {
+        const weeks = Object.keys(schedule).sort((a, b) => parseInt(a) - parseInt(b));
+        currentWeek = weeks[weeks.length - 1];
+      }
+
+      localStorage.setItem("currentWeek", currentWeek);
+
       // Show pick status
       const allPicks = JSON.parse(localStorage.getItem("allPicks") || "{}");
       const userPicks = allPicks[user] || {};
-      const currentWeek = localStorage.getItem("currentWeek") || "1";
       const pickedTeam = userPicks[currentWeek];
 
+      const pickMsg = document.createElement("p");
+      pickMsg.id = "pickNotice";
+
       if (pickedTeam) {
-        const pickMsg = document.createElement("p");
-        pickMsg.id = "pickNotice";
         pickMsg.innerHTML = `
           You have already selected <strong>${pickedTeam}</strong> for Week ${currentWeek}.<br>
           If you want to change your pick, press <a href="/nfl-shotgun-league/pick.html">Submit Pick</a> again.<br>
           You will not be able to change your pick once your selected team has kicked off.
         `;
-        document.getElementById("welcome").insertAdjacentElement("afterend", pickMsg);
+      } else {
+        pickMsg.innerHTML = `
+          ⚠️ You have not yet made a pick for Week ${currentWeek}.<br>
+          Please go to <a href="/nfl-shotgun-league/pick.html">Submit Pick</a> to lock one in before kickoff.
+        `;
       }
+
+      document.getElementById("welcome").insertAdjacentElement("afterend", pickMsg);
     });
   </script>
 </head>
