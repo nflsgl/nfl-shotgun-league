@@ -6,16 +6,24 @@
   <link rel="stylesheet" href="style.css">
   <script>
     document.addEventListener("DOMContentLoaded", function() {
-      const user = sessionStorage.getItem("user");
-      if (!user) {{
+      const user = localStorage.getItem("user");
+      if (!user) {
         window.location.href = "login.html";
-      }} else {{
+      } else {
         document.getElementById("welcome").textContent = "Welcome, " + user;
-      }}
+      }
     });
   </script>
 </head>
 <body>
+  
+<div id="nav">
+  <a href="index.html">Home</a> |
+  <a href="pick.html">Submit Pick</a> |
+  <a href="leaderboard.html">Leaderboard</a> |
+  <a href="matrix.html">Matrix</a>
+</div>
+
   <h1 id="welcome">Welcome</h1>
   <form>
     <label>Pick your team:
@@ -30,6 +38,5 @@
     </label><br>
     <button type="submit">Submit Pick</button>
   </form>
-  <p><a href="index.html">Back to Home</a></p>
 </body>
 </html>

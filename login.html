@@ -9,21 +9,8 @@
 <body>
   <h1>Login</h1>
   <form id="loginForm">
-    <label>Username:
-      <select id="username">
-        <option>Aaron B.</option><option>Alec B.</option><option>Brad D.</option>
-        <option>Brad G.</option><option>Brad H.</option><option>Brian M.</option>
-        <option>Cal N.</option><option>Carter B.</option><option>Chuck P.</option>
-        <option>David H.</option><option>Hunter</option><option>Ian F.</option>
-        <option>Jacob G.</option><option>Jim C.</option><option>Joe O.</option>
-        <option>Josh A.</option><option>Justin G.</option><option>Mike D.</option>
-        <option>Mike K.</option><option>Mitch M.</option><option>Nick P.</option>
-        <option>Riley B.</option><option>Ryan L.</option><option>Taylor H.</option>
-        <option>Tim B.</option><option>Tom W.</option><option>Trevor C.</option>
-        <option>Zach W.</option>
-      </select>
-    </label><br><br>
-    <label>Password: <input type="password" id="password"></label><br><br>
+    <label>Username: <input type="text" id="username" autocomplete="username"></label><br><br>
+    <label>Password: <input type="password" id="password" autocomplete="current-password"></label><br><br>
     <button type="submit">Login</button>
   </form>
   <p id="errorMsg" style="color:red;"></p>

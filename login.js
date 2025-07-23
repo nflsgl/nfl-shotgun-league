@@ -3,12 +3,12 @@ const players = {'Aaron B.': 'honda', 'Alec B.': 'ford', 'Brad D.': 'chevy', 'Br
 
 document.getElementById("loginForm").addEventListener("submit", function(e) {
   e.preventDefault();
-  const user = document.getElementById("username").value;
+  const user = document.getElementById("username").value.trim();
   const pw = document.getElementById("password").value.toLowerCase().trim();
   const correct = players[user];
 
   if (pw === correct) {
-    sessionStorage.setItem("user", user);
+    localStorage.setItem("user", user);
     window.location.href = "pick.html";
   } else {
     document.getElementById("errorMsg").textContent = "Incorrect password.";
