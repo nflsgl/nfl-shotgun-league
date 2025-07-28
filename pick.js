@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', async function () {
   const form = document.getElementById('pickForm');
   const submitBtn = form.querySelector('button[type="submit"]');
 
-  // Load picks CSV
+  // Load existing picks
   const picksCSV = await fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vRv9PUKq_JE6dUMgdoDYFsOZESjh2jD2gK40wLKiYsrCp6WALkdKJsxJeJ8ylYnGQLwStKjlLGrXMX9/pub?output=csv')
     .then(res => res.text());
 
@@ -42,20 +42,18 @@ document.addEventListener('DOMContentLoaded', async function () {
   }
 
   function isThursdayNightGame(matchup) {
-    const kickoff = new Date(matchup.kickoff); // assumed ISO string in schedule.js
-    return kickoff.getDay() === 4 && kickoff.getHours() >= 20; // Thursday night
+    const kickoff = new Date(matchup.kickoff);
+    return kickoff.getDay() === 4 && kickoff.getHours() >= 20;
   }
 
   function hasThursdayGameStarted(scheduleWeek) {
     const thursdayGame = scheduleWeek.find(m => isThursdayNightGame(m));
     if (!thursdayGame) return false;
-    const now = new Date();
-    return now >= new Date(thursdayGame.kickoff);
+    return new Date() >= new Date(thursdayGame.kickoff);
   }
 
   function populateTeamsForWeek(week) {
     teamSelect.innerHTML = '<option value="">-- Choose a team --</option>';
-
     if (!schedule[week] || schedule[week].length === 0) return;
 
     const options = [];
@@ -68,12 +66,10 @@ document.addEventListener('DOMContentLoaded', async function () {
       const option = document.createElement('option');
       option.value = value;
       option.textContent = label;
-
       if (usedTeams.includes(value)) {
         option.disabled = true;
         option.textContent += ' (already used)';
       }
-
       teamSelect.appendChild(option);
     }
 
@@ -98,7 +94,6 @@ document.addEventListener('DOMContentLoaded', async function () {
       return;
     }
 
-    // Thursday night lockout
     if (hasThursdayGameStarted(schedule[week])) {
       const pickedTeam = userPicks[week];
       if (!pickedTeam) {
@@ -107,29 +102,23 @@ document.addEventListener('DOMContentLoaded', async function () {
       }
     }
 
-    // Confirm overwrite
     if (userPicks[week] && userPicks[week] !== team) {
       const confirmChange = confirm(`You've already picked ${userPicks[week]} for Week ${week}. Replace it with ${team}?`);
       if (!confirmChange) return;
     }
 
-    // Submit pick
-    const submission = {
-      username: user,
-      week: week,
-      team: team
-    };
+    const submission = { username: user, week: week, team: team };
 
     submitBtn.disabled = true;
     submitBtn.textContent = 'Submitting...';
 
     try {
-      const response = await fetch('https://script.google.com/macros/s/AKfycbyG7QUXbY0VumOsit8WlZZJc7NBeWxgc-kJhXJYDHYb_TnLJdMKIP08KleW-PSM-w8n/exec', {
+      const response = await fetch('https://script.google.com/macros/s/AKfycbxlxW1BRCg03ScwtukXcWrUsEh_59j9gzAhoXbjzU_DMHFLwJe_ngVDHS9LntUhYVcy/exec', {
         method: 'POST',
-        body: JSON.stringify(submission),
         headers: {
           'Content-Type': 'text/plain;charset=utf-8'
-        }
+        },
+        body: JSON.stringify(submission)
       });
 
       const result = await response.text();
@@ -148,7 +137,6 @@ document.addEventListener('DOMContentLoaded', async function () {
     }
   });
 
-  // Auto-trigger population if week preselected
   if (weekSelect.value) {
     populateTeamsForWeek(weekSelect.value);
   }
