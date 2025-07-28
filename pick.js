@@ -128,7 +128,7 @@ document.addEventListener('DOMContentLoaded', async function () {
         method: 'POST',
         body: JSON.stringify(submission),
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'text/plain;charset=utf-8'
         }
       });
 
