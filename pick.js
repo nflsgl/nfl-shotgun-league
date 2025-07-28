@@ -1,4 +1,5 @@
-document.addEventListener('DOMContentLoaded', async function () {
+
+document.addEventListener('DOMContentLoaded', () => {
   const user = localStorage.getItem('user');
   const loginTime = parseInt(localStorage.getItem('loginTime'), 10);
   const now = Date.now();
@@ -12,136 +13,82 @@ document.addEventListener('DOMContentLoaded', async function () {
 
   const weekSelect = document.getElementById('week');
   const teamSelect = document.getElementById('team');
-  const form = document.getElementById('pickForm');
-  const submitBtn = form.querySelector('button[type="submit"]');
+  const confirmBox = document.getElementById('confirmBox');
 
-  // Load picks CSV
-  const picksCSV = await fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vRv9PUKq_JE6dUMgdoDYFsOZESjh2jD2gK40wLKiYsrCp6WALkdKJsxJeJ8ylYnGQLwStKjlLGrXMX9/pub?output=csv')
-    .then(res => res.text());
-
-  const allPicks = {};
-  picksCSV.trim().split('\n').slice(1).forEach(row => {
-    const [username, week, team] = row.split(',');
-    const uname = username.trim().toLowerCase();
-    if (!allPicks[uname]) allPicks[uname] = {};
-    allPicks[uname][week.trim()] = team.trim();
+  // Populate weeks from schedule
+  Object.keys(schedule).sort((a, b) => parseInt(a) - parseInt(b)).forEach(week => {
+    const games = schedule[week];
+    const startDate = new Date(games[0].date);
+    const endDate = new Date(games[games.length - 1].date);
+    const label = `Week ${week} (${startDate.toLocaleDateString()}–${endDate.toLocaleDateString()})`;
+    const option = new Option(label, week);
+    weekSelect.appendChild(option);
   });
 
-  const userPicks = allPicks[user] || {};
-  const usedTeams = Object.values(userPicks);
+  weekSelect.addEventListener('change', () => {
+    populateTeamsForWeek(weekSelect.value);
+  });
 
   function getMatchupOption(matchup, isHomeTeam) {
-  const team = isHomeTeam ? matchup.home : matchup.away;
-  const opp = isHomeTeam ? matchup.away : matchup.home;
-  const location = isHomeTeam ? 'vs' : '@';
+    const team = isHomeTeam ? matchup.home : matchup.away;
+    const opp = isHomeTeam ? matchup.away : matchup.home;
+    const location = isHomeTeam ? 'vs' : '@';
 
-  const rawSpread = matchup.spread;
-  let spread = '';
-  if (typeof rawSpread === 'string') {
-    spread = rawSpread.startsWith('-') || rawSpread.startsWith('+') ? rawSpread : `+${rawSpread}`;
-  }
-
-  return {
-    value: team,
-    label: `${team}${spread ? ' ' + spread : ''} (${location} ${opp})`
-  };
-}
-
-  function isThursdayNightGame(matchup) {
-    const kickoff = new Date(matchup.kickoff);
-    return kickoff.getDay() === 4 && kickoff.getHours() >= 20;
-  }
-
-  function hasThursdayGameStarted(scheduleWeek) {
-    const thursdayGame = scheduleWeek.find(m => isThursdayNightGame(m));
-    if (!thursdayGame) return false;
-    const now = new Date();
-    return now >= new Date(thursdayGame.kickoff);
+    return {
+      value: team,
+      label: `${team} (${location} ${opp})`
+    };
   }
 
   function populateTeamsForWeek(week) {
-    teamSelect.innerHTML = '<option value="">-- Choose a team --</option>';
-    if (!schedule[week]) return;
+    teamSelect.innerHTML = '';
+    const games = schedule[week];
+    const used = JSON.parse(localStorage.getItem('usedTeams') || '{}')[user] || [];
 
-    const options = [];
-    for (const matchup of schedule[week]) {
-      options.push(getMatchupOption(matchup, true));
-      options.push(getMatchupOption(matchup, false));
-    }
+    const teamsAdded = new Set();
 
-    for (const { value, label } of options) {
-      const option = document.createElement('option');
-      option.value = value;
-      option.textContent = label;
-      if (usedTeams.includes(value)) {
-        option.disabled = true;
-        option.textContent += ' (already used)';
-      }
-      teamSelect.appendChild(option);
-    }
-
-    const selectedTeam = userPicks[week];
-    if (selectedTeam) {
-      teamSelect.value = selectedTeam;
-    }
+    games.forEach(game => {
+      [true, false].forEach(isHome => {
+        const { value, label } = getMatchupOption(game, isHome);
+        if (!used.includes(value) && !teamsAdded.has(value)) {
+          const option = new Option(label, value);
+          teamSelect.appendChild(option);
+          teamsAdded.add(value);
+        }
+      });
+    });
   }
 
-  weekSelect.addEventListener('change', function () {
-    populateTeamsForWeek(this.value);
-  });
-
-  form.addEventListener('submit', function (e) {
+  document.getElementById('pickForm').addEventListener('submit', function (e) {
     e.preventDefault();
-
     const week = weekSelect.value;
     const team = teamSelect.value;
+    if (!week || !team) return;
 
-    if (!week || !team) {
-      alert('Please select both a week and a team.');
-      return;
-    }
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = 'https://script.google.com/macros/s/AKfycbxlxW1BRCg03ScwtukXcWrUsEh_59j9gzAhoXbjzU_DMHFLwJe_ngVDHS9LntUhYVcy/exec';
 
-    if (hasThursdayGameStarted(schedule[week]) && !userPicks[week]) {
-      alert('Thursday game has started. You can no longer pick this week.');
-      return;
-    }
+    const uInput = document.createElement('input');
+    uInput.type = 'hidden';
+    uInput.name = 'username';
+    uInput.value = user;
 
-    if (userPicks[week] && userPicks[week] !== team) {
-      const confirmChange = confirm(`You've already picked ${userPicks[week]} for Week ${week}. Replace it with ${team}?`);
-      if (!confirmChange) return;
-    }
+    const wInput = document.createElement('input');
+    wInput.type = 'hidden';
+    wInput.name = 'week';
+    wInput.value = week;
 
-    const iframe = document.createElement('iframe');
-    iframe.name = 'hidden_iframe';
-    iframe.style.display = 'none';
-    document.body.appendChild(iframe);
+    const tInput = document.createElement('input');
+    tInput.type = 'hidden';
+    tInput.name = 'team';
+    tInput.value = team;
 
-    const postForm = document.createElement('form');
-    postForm.method = 'POST';
-    postForm.action = 'https://script.google.com/macros/s/AKfycbxlxW1BRCg03ScwtukXcWrUsEh_59j9gzAhoXbjzU_DMHFLwJe_ngVDHS9LntUhYVcy/exec';
-    postForm.target = 'hidden_iframe';
+    form.appendChild(uInput);
+    form.appendChild(wInput);
+    form.appendChild(tInput);
 
-    for (const [key, val] of Object.entries({ username: user, week, team })) {
-      const input = document.createElement('input');
-      input.type = 'hidden';
-      input.name = key;
-      input.value = val;
-      postForm.appendChild(input);
-    }
-
-    document.body.appendChild(postForm);
-    postForm.submit();
-
-    form.innerHTML = `
-      <div style="padding: 1em; border: 2px solid green; border-radius: 10px; background: #eaffea; text-align: center;">
-        <h3>✅ Pick submitted</h3>
-        <p><strong>${team}</strong> has been submitted for <strong>Week ${week}</strong>.</p>
-        <button onclick="window.location.reload()">Make Another Pick</button>
-      </div>
-    `;
+    document.body.appendChild(form);
+    form.submit();
   });
-
-  if (weekSelect.value) {
-    populateTeamsForWeek(weekSelect.value);
-  }
 });
