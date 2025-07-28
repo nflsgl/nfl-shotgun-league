@@ -55,7 +55,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 
   function populateTeamsForWeek(week) {
     teamSelect.innerHTML = '<option value="">-- Choose a team --</option>';
-    if (!schedule[week] || schedule[week].length === 0) return;
+    if (!schedule[week]) return;
 
     const options = [];
     for (const matchup of schedule[week]) {
@@ -67,12 +67,10 @@ document.addEventListener('DOMContentLoaded', async function () {
       const option = document.createElement('option');
       option.value = value;
       option.textContent = label;
-
       if (usedTeams.includes(value)) {
         option.disabled = true;
         option.textContent += ' (already used)';
       }
-
       teamSelect.appendChild(option);
     }
 
@@ -86,7 +84,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     populateTeamsForWeek(this.value);
   });
 
-  form.addEventListener('submit', async function (e) {
+  form.addEventListener('submit', function (e) {
     e.preventDefault();
 
     const week = weekSelect.value;
@@ -107,38 +105,34 @@ document.addEventListener('DOMContentLoaded', async function () {
       if (!confirmChange) return;
     }
 
-    const submission = {
-      username: user,
-      week: week,
-      team: team
-    };
+    const iframe = document.createElement('iframe');
+    iframe.name = 'hidden_iframe';
+    iframe.style.display = 'none';
+    document.body.appendChild(iframe);
 
-    submitBtn.disabled = true;
-    submitBtn.textContent = 'Submitting...';
+    const postForm = document.createElement('form');
+    postForm.method = 'POST';
+    postForm.action = 'https://script.google.com/macros/s/AKfycbxlxW1BRCg03ScwtukXcWrUsEh_59j9gzAhoXbjzU_DMHFLwJe_ngVDHS9LntUhYVcy/exec';
+    postForm.target = 'hidden_iframe';
 
-    try {
-      const response = await fetch('https://script.google.com/macros/s/AKfycbxlxW1BRCg03ScwtukXcWrUsEh_59j9gzAhoXbjzU_DMHFLwJe_ngVDHS9LntUhYVcy/exec', {
-        method: 'POST',
-        body: JSON.stringify(submission),
-        headers: {
-          'Content-Type': 'text/plain;charset=utf-8'
-        }
-      });
-
-      const result = await response.text();
-
-      form.innerHTML = `
-        <div style="padding: 1em; border: 2px solid green; border-radius: 10px; background: #eaffea; text-align: center;">
-          <h3>✅ ${result}</h3>
-          <p><strong>${team}</strong> has been submitted for <strong>Week ${week}</strong>.</p>
-          <button onclick="window.location.reload()">Make Another Pick</button>
-        </div>
-      `;
-    } catch (err) {
-      alert('Error submitting pick: ' + err.message);
-      submitBtn.disabled = false;
-      submitBtn.textContent = 'Submit Pick';
+    for (const [key, val] of Object.entries({ username: user, week, team })) {
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = key;
+      input.value = val;
+      postForm.appendChild(input);
     }
+
+    document.body.appendChild(postForm);
+    postForm.submit();
+
+    form.innerHTML = `
+      <div style="padding: 1em; border: 2px solid green; border-radius: 10px; background: #eaffea; text-align: center;">
+        <h3>✅ Pick submitted</h3>
+        <p><strong>${team}</strong> has been submitted for <strong>Week ${week}</strong>.</p>
+        <button onclick="window.location.reload()">Make Another Pick</button>
+      </div>
+    `;
   });
 
   if (weekSelect.value) {
