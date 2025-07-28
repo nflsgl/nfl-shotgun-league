@@ -1,4 +1,3 @@
-
 document.addEventListener('DOMContentLoaded', () => {
   const user = localStorage.getItem('user');
   const loginTime = parseInt(localStorage.getItem('loginTime'), 10);
@@ -13,9 +12,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const weekSelect = document.getElementById('week');
   const teamSelect = document.getElementById('team');
-  const confirmBox = document.getElementById('confirmBox');
 
-  // Populate weeks from schedule
+  // Populate week dropdown
   Object.keys(schedule).sort((a, b) => parseInt(a) - parseInt(b)).forEach(week => {
     const games = schedule[week];
     const startDate = new Date(games[0].date);
@@ -30,6 +28,9 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   function getMatchupOption(matchup, isHomeTeam) {
+    if (!matchup || !matchup.home || !matchup.away) {
+      return { value: '', label: 'Invalid matchup' };
+    }
     const team = isHomeTeam ? matchup.home : matchup.away;
     const opp = isHomeTeam ? matchup.away : matchup.home;
     const location = isHomeTeam ? 'vs' : '@';
@@ -47,10 +48,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const teamsAdded = new Set();
 
+    if (!games || !Array.isArray(games)) return;
+
     games.forEach(game => {
       [true, false].forEach(isHome => {
         const { value, label } = getMatchupOption(game, isHome);
-        if (!used.includes(value) && !teamsAdded.has(value)) {
+        if (value && !used.includes(value) && !teamsAdded.has(value)) {
           const option = new Option(label, value);
           teamSelect.appendChild(option);
           teamsAdded.add(value);
