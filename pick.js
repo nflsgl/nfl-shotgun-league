@@ -15,7 +15,6 @@ document.addEventListener('DOMContentLoaded', async function () {
   const form = document.getElementById('pickForm');
   const submitBtn = form.querySelector('button[type="submit"]');
 
-  // Load existing picks
   const picksCSV = await fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vRv9PUKq_JE6dUMgdoDYFsOZESjh2jD2gK40wLKiYsrCp6WALkdKJsxJeJ8ylYnGQLwStKjlLGrXMX9/pub?output=csv')
     .then(res => res.text());
 
@@ -54,6 +53,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 
   function populateTeamsForWeek(week) {
     teamSelect.innerHTML = '<option value="">-- Choose a team --</option>';
+
     if (!schedule[week] || schedule[week].length === 0) return;
 
     const options = [];
@@ -66,10 +66,12 @@ document.addEventListener('DOMContentLoaded', async function () {
       const option = document.createElement('option');
       option.value = value;
       option.textContent = label;
+
       if (usedTeams.includes(value)) {
         option.disabled = true;
         option.textContent += ' (already used)';
       }
+
       teamSelect.appendChild(option);
     }
 
@@ -107,7 +109,11 @@ document.addEventListener('DOMContentLoaded', async function () {
       if (!confirmChange) return;
     }
 
-    const submission = { username: user, week: week, team: team };
+    const submission = {
+      username: user,
+      week: week,
+      team: team
+    };
 
     submitBtn.disabled = true;
     submitBtn.textContent = 'Submitting...';
@@ -115,10 +121,10 @@ document.addEventListener('DOMContentLoaded', async function () {
     try {
       const response = await fetch('https://script.google.com/macros/s/AKfycbxlxW1BRCg03ScwtukXcWrUsEh_59j9gzAhoXbjzU_DMHFLwJe_ngVDHS9LntUhYVcy/exec', {
         method: 'POST',
+        body: JSON.stringify(submission),
         headers: {
-          'Content-Type': 'text/plain;charset=utf-8'
-        },
-        body: JSON.stringify(submission)
+          'Content-Type': 'application/json'
+        }
       });
 
       const result = await response.text();
