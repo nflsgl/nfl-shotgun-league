@@ -31,15 +31,21 @@ document.addEventListener('DOMContentLoaded', async function () {
   const usedTeams = Object.values(userPicks);
 
   function getMatchupOption(matchup, isHomeTeam) {
-    const team = isHomeTeam ? matchup.home : matchup.away;
-    const opp = isHomeTeam ? matchup.away : matchup.home;
-    const spread = isHomeTeam ? matchup.odds.spread.home : matchup.odds.spread.away;
-    const location = isHomeTeam ? 'vs' : '@';
-    return {
-      value: team,
-      label: `${team} ${spread > 0 ? '+' : ''}${spread} (${location} ${opp})`
-    };
+  const team = isHomeTeam ? matchup.home : matchup.away;
+  const opp = isHomeTeam ? matchup.away : matchup.home;
+  const location = isHomeTeam ? 'vs' : '@';
+
+  const rawSpread = matchup.spread;
+  let spread = '';
+  if (typeof rawSpread === 'string') {
+    spread = rawSpread.startsWith('-') || rawSpread.startsWith('+') ? rawSpread : `+${rawSpread}`;
   }
+
+  return {
+    value: team,
+    label: `${team}${spread ? ' ' + spread : ''} (${location} ${opp})`
+  };
+}
 
   function isThursdayNightGame(matchup) {
     const kickoff = new Date(matchup.kickoff);
