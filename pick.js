@@ -124,7 +124,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     submitBtn.textContent = 'Submitting...';
 
     try {
-      const response = await fetch('https://script.google.com/macros/s/AKfycbwA-PGrBpDfHv3mT47lyh6_eLHsszFAxch-OwcNZIZgUBirDCdDh0oPx33JfCWiOxor/exec', {
+      const response = await fetch('https://script.google.com/macros/s/AKfycbzE4Jl6K8Nqkllwi_dU-lwp-3WMG-rQLvQtWjqqfZPVxlu1zCNK1x2Qt1dEbX-ONvR2/exec', {
         method: 'POST',
         body: JSON.stringify(submission),
         headers: {
