@@ -15,6 +15,7 @@ document.addEventListener('DOMContentLoaded', async function () {
   const form = document.getElementById('pickForm');
   const submitBtn = form.querySelector('button[type="submit"]');
 
+  // Load picks CSV
   const picksCSV = await fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vRv9PUKq_JE6dUMgdoDYFsOZESjh2jD2gK40wLKiYsrCp6WALkdKJsxJeJ8ylYnGQLwStKjlLGrXMX9/pub?output=csv')
     .then(res => res.text());
 
@@ -48,12 +49,12 @@ document.addEventListener('DOMContentLoaded', async function () {
   function hasThursdayGameStarted(scheduleWeek) {
     const thursdayGame = scheduleWeek.find(m => isThursdayNightGame(m));
     if (!thursdayGame) return false;
-    return new Date() >= new Date(thursdayGame.kickoff);
+    const now = new Date();
+    return now >= new Date(thursdayGame.kickoff);
   }
 
   function populateTeamsForWeek(week) {
     teamSelect.innerHTML = '<option value="">-- Choose a team --</option>';
-
     if (!schedule[week] || schedule[week].length === 0) return;
 
     const options = [];
@@ -96,12 +97,9 @@ document.addEventListener('DOMContentLoaded', async function () {
       return;
     }
 
-    if (hasThursdayGameStarted(schedule[week])) {
-      const pickedTeam = userPicks[week];
-      if (!pickedTeam) {
-        alert('Thursday game has started. You can no longer pick this week.');
-        return;
-      }
+    if (hasThursdayGameStarted(schedule[week]) && !userPicks[week]) {
+      alert('Thursday game has started. You can no longer pick this week.');
+      return;
     }
 
     if (userPicks[week] && userPicks[week] !== team) {
