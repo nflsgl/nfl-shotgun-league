@@ -14,10 +14,12 @@
       font: inherit;
       padding: 0;
     }
+  
     #pickNotice {
       margin-top: 1em;
       font-weight: bold;
     }
+  
     .team-logo {
       display: inline-block;
       vertical-align: middle;
@@ -25,25 +27,49 @@
       height: 28px;
       margin-right: 8px;
     }
+  
+    #userPicksTable td {
+      padding: 8px;
+      border-bottom: 1px solid #ccc;
+      word-break: break-word;
+    }
+  
     @media (max-width: 600px) {
       table, thead, tbody, th, td, tr {
         display: block;
       }
+  
       thead tr {
         display: none;
       }
-      td {
-        padding: 10px;
-        border-bottom: 1px solid #ccc;
+  
+      tr {
+        margin-bottom: 8px;
+        background-color: #f9f9f9;
+        border-radius: 6px;
+        overflow: hidden;
       }
+  
+      td {
+        padding: 10px 12px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        border-bottom: 1px solid #ccc;
+        background-color: white;
+      }
+  
       td::before {
         font-weight: bold;
         display: block;
+        min-width: 60px;
       }
+  
       td:nth-child(1)::before { content: "Week"; }
       td:nth-child(2)::before { content: "Team"; }
     }
   </style>
+
   <script src="/nfl-shotgun-league/schedule.js"></script>
   <script>
     const teamLogos = {
