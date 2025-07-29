@@ -1,4 +1,5 @@
-document.addEventListener('DOMContentLoaded', () => {
+
+document.addEventListener('DOMContentLoaded', async () => {
   const user = localStorage.getItem('user');
   const loginTime = parseInt(localStorage.getItem('loginTime'), 10);
   const now = Date.now();
@@ -13,6 +14,18 @@ document.addEventListener('DOMContentLoaded', () => {
   const weekSelect = document.getElementById('week');
   const teamSelect = document.getElementById('team');
   const confirmBox = document.getElementById('confirmBox');
+
+  let userUsedTeams = [];
+
+  try {
+    const res = await fetch('https://script.google.com/macros/s/AKfycbxlxW1BRCg03ScwtukXcWrUsEh_59j9gzAhoXbjzU_DMHFLwJe_ngVDHS9LntUhYVcy/exec');
+    const allPicks = await res.json();
+    const userPicks = allPicks[user.toLowerCase()] || {};
+    userUsedTeams = Object.values(userPicks);
+    localStorage.setItem('usedTeams', JSON.stringify({ [user]: userUsedTeams }));
+  } catch (err) {
+    console.error('Error fetching used teams:', err);
+  }
 
   Object.keys(schedule).sort((a, b) => parseInt(a) - parseInt(b)).forEach(week => {
     const games = schedule[week];
@@ -44,7 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function populateTeamsForWeek(week) {
     teamSelect.innerHTML = '';
     const games = schedule[week];
-    const used = JSON.parse(localStorage.getItem('usedTeams') || '{}')[user] || [];
+    const used = userUsedTeams;
 
     const teamsAdded = new Set();
     if (!games || !Array.isArray(games)) return;
@@ -67,7 +80,6 @@ document.addEventListener('DOMContentLoaded', () => {
   iframe.style.display = 'none';
   document.body.appendChild(iframe);
 
-  // Show green box after submission (onload of iframe)
   iframe.onload = () => {
     confirmBox.textContent = '✅ Pick submitted successfully!';
     confirmBox.style.color = 'green';
