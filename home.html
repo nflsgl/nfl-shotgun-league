@@ -25,46 +25,63 @@
       height: 28px;
       margin-right: 8px;
     }
+    @media (max-width: 600px) {
+      table, thead, tbody, th, td, tr {
+        display: block;
+      }
+      thead tr {
+        display: none;
+      }
+      td {
+        padding: 10px;
+        border-bottom: 1px solid #ccc;
+      }
+      td::before {
+        font-weight: bold;
+        display: block;
+      }
+      td:nth-child(1)::before { content: "Week"; }
+      td:nth-child(2)::before { content: "Team"; }
+    }
   </style>
   <script src="/nfl-shotgun-league/schedule.js"></script>
   <script>
-    
-const teamLogos = {
-  "Arizona Cardinals": "cardinals.png",
-  "Atlanta Falcons": "falcons.png",
-  "Baltimore Ravens": "ravens.png",
-  "Buffalo Bills": "bills.png",
-  "Carolina Panthers": "panthers.png",
-  "Chicago Bears": "bears.png",
-  "Cincinnati Bengals": "bengals.png",
-  "Cleveland Browns": "browns.png",
-  "Dallas Cowboys": "cowboys.png",
-  "Denver Broncos": "broncos.png",
-  "Detroit Lions": "lions.png",
-  "Green Bay Packers": "packers.png",
-  "Houston Texans": "texans.png",
-  "Indianapolis Colts": "colts.png",
-  "Jacksonville Jaguars": "jaguars.png",
-  "Kansas City Chiefs": "chiefs.png",
-  "Las Vegas Raiders": "raiders.png",
-  "Los Angeles Chargers": "chargers.png",
-  "Los Angeles Rams": "rams.png",
-  "Miami Dolphins": "dolphins.png",
-  "Minnesota Vikings": "vikings.png",
-  "New England Patriots": "patriots.png",
-  "New Orleans Saints": "saints.png",
-  "New York Giants": "giants.png",
-  "New York Jets": "jets.png",
-  "Philadelphia Eagles": "eagles.png",
-  "Pittsburgh Steelers": "steelers.png",
-  "San Francisco 49ers": "49ers.png",
-  "Seattle Seahawks": "seahawks.png",
-  "Tampa Bay Buccaneers": "buccaneers.png",
-  "Tennessee Titans": "titans.png",
-  "Washington Commanders": "commanders.png"
-};
+    const teamLogos = {
+      "Arizona Cardinals": "cardinals.png",
+      "Atlanta Falcons": "falcons.png",
+      "Baltimore Ravens": "ravens.png",
+      "Buffalo Bills": "bills.png",
+      "Carolina Panthers": "panthers.png",
+      "Chicago Bears": "bears.png",
+      "Cincinnati Bengals": "bengals.png",
+      "Cleveland Browns": "browns.png",
+      "Dallas Cowboys": "cowboys.png",
+      "Denver Broncos": "broncos.png",
+      "Detroit Lions": "lions.png",
+      "Green Bay Packers": "packers.png",
+      "Houston Texans": "texans.png",
+      "Indianapolis Colts": "colts.png",
+      "Jacksonville Jaguars": "jaguars.png",
+      "Kansas City Chiefs": "chiefs.png",
+      "Las Vegas Raiders": "raiders.png",
+      "Los Angeles Chargers": "chargers.png",
+      "Los Angeles Rams": "rams.png",
+      "Miami Dolphins": "dolphins.png",
+      "Minnesota Vikings": "vikings.png",
+      "New England Patriots": "patriots.png",
+      "New Orleans Saints": "saints.png",
+      "New York Giants": "giants.png",
+      "New York Jets": "jets.png",
+      "Philadelphia Eagles": "eagles.png",
+      "Pittsburgh Steelers": "steelers.png",
+      "San Francisco 49ers": "49ers.png",
+      "Seattle Seahawks": "seahawks.png",
+      "Tampa Bay Buccaneers": "buccaneers.png",
+      "Tennessee Titans": "titans.png",
+      "Washington Commanders": "commanders.png"
+    };
 
-    document.addEventListener("DOMContentLoaded", function () {
+    document.addEventListener("DOMContentLoaded", async function () {
       const user = localStorage.getItem("user");
       const loginTime = parseInt(localStorage.getItem("loginTime"), 10);
       const now = Date.now();
@@ -89,7 +106,6 @@ const teamLogos = {
       // Determine current week
       const today = new Date();
       let currentWeek = null;
-
       for (const [week, games] of Object.entries(schedule)) {
         for (const game of games) {
           const gameDate = new Date(game.date);
@@ -108,7 +124,7 @@ const teamLogos = {
 
       localStorage.setItem("currentWeek", currentWeek);
 
-      // Fetch pick from Google Apps Script
+      // Fetch pick history from Google Apps Script
       fetch(`https://script.google.com/macros/s/AKfycbxlxW1BRCg03ScwtukXcWrUsEh_59j9gzAhoXbjzU_DMHFLwJe_ngVDHS9LntUhYVcy/exec?username=${encodeURIComponent(user)}`)
         .then(res => res.json())
         .then(picks => {
@@ -123,9 +139,7 @@ const teamLogos = {
             pickMsg.innerHTML = `
               ${logoImg}
               You have already selected <strong>${pickedTeam}</strong> for Week ${currentWeek}.<br>
-              
               If you want to change your pick, press <a href="/nfl-shotgun-league/pick.html">Submit Pick</a> again.<br>
-              
               You will not be able to change your pick once your selected team has kicked off.
             `;
           } else {
@@ -137,12 +151,33 @@ const teamLogos = {
 
           document.getElementById("welcome").insertAdjacentElement("afterend", pickMsg);
 
-          // Commish panel link
+          // Commish link
           if (user === "alecb" || user === "mitchm") {
             const commishLink = document.createElement("p");
             commishLink.innerHTML = `<a href="/nfl-shotgun-league/commissioner.html">🛠️ Commissioner Panel</a>`;
             pickMsg.insertAdjacentElement("afterend", commishLink);
           }
+
+          // Render full pick history
+          const tableBody = document.querySelector("#userPicksTable tbody");
+          const sorted = [...picks].sort((a, b) => parseInt(a.week) - parseInt(b.week));
+          sorted.forEach(p => {
+            const row = document.createElement("tr");
+            if (p.week == currentWeek) {
+              row.style.backgroundColor = "#e0ffe0";
+              row.style.fontWeight = "bold";
+            }
+
+            const logoFile = teamLogos[p.team] || "default.png";
+            row.innerHTML = `
+              <td>Week ${p.week}</td>
+              <td>
+                <img src="/nfl-shotgun-league/logos/${logoFile}" alt="${p.team}" style="width: 24px; vertical-align: middle; margin-right: 8px;">
+                ${p.team}
+              </td>
+            `;
+            tableBody.appendChild(row);
+          });
         })
         .catch(err => {
           console.error("Error fetching pick:", err);
@@ -152,23 +187,6 @@ const teamLogos = {
           document.getElementById("welcome").insertAdjacentElement("afterend", errorMsg);
         });
     });
-
-    // Render the user's full pick history
-      const tableBody = document.querySelector("#userPicksTable tbody");
-      if (tableBody && allPicks[user]) {
-        const userPicks = allPicks[user];
-        const sortedWeeks = Object.keys(userPicks).sort((a, b) => parseInt(a) - parseInt(b));
-        sortedWeeks.forEach(week => {
-          const team = userPicks[week];
-          const row = document.createElement("tr");
-          row.innerHTML = `
-            <td style="padding: 6px 0;">Week ${week}</td>
-            <td style="padding: 6px 0;">${team}</td>
-          `;
-          tableBody.appendChild(row);
-        });
-      }
-
   </script>
 </head>
 <body>
@@ -180,6 +198,7 @@ const teamLogos = {
   </div>
   <h1 id="welcome">Welcome</h1>
   <p>This is your league home page. Use the nav above to explore your picks and standings.</p>
+
   <h2>Your Picks</h2>
   <table id="userPicksTable" style="width: 100%; border-collapse: collapse;">
     <thead>
@@ -190,6 +209,5 @@ const teamLogos = {
     </thead>
     <tbody></tbody>
   </table>
-
 </body>
 </html>
