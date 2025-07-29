@@ -124,6 +124,8 @@
 
       localStorage.setItem("currentWeek", currentWeek);
 
+      startCountdowns(currentWeek);
+      
       // Fetch pick history from Google Apps Script
       fetch(`https://script.google.com/macros/s/AKfycbxlxW1BRCg03ScwtukXcWrUsEh_59j9gzAhoXbjzU_DMHFLwJe_ngVDHS9LntUhYVcy/exec?username=${encodeURIComponent(user)}`)
         .then(res => res.json())
@@ -187,6 +189,41 @@
           document.getElementById("welcome").insertAdjacentElement("afterend", errorMsg);
         });
     });
+
+    function startCountdowns(weekNum) {
+      const games = schedule[weekNum];
+      if (!games || games.length === 0) return;
+    
+      const countdownBox = document.getElementById("countdownBox");
+    
+      // Get first Thursday game (or fallback to first game)
+      const thursdayGame = games.find(g => new Date(g.date).getDay() === 4) || games[0];
+      const sunday1pm = new Date(games.find(g => new Date(g.date).getDay() === 0)?.date || games[0].date);
+      sunday1pm.setHours(13, 0, 0, 0); // force Sunday at 1PM
+    
+      function updateCountdowns() {
+        const now = new Date();
+        const t1 = Math.max(0, new Date(thursdayGame.date) - now);
+        const t2 = Math.max(0, sunday1pm - now);
+    
+        function format(ms) {
+          const totalSec = Math.floor(ms / 1000);
+          const h = String(Math.floor(totalSec / 3600)).padStart(2, '0');
+          const m = String(Math.floor((totalSec % 3600) / 60)).padStart(2, '0');
+          const s = String(totalSec % 60).padStart(2, '0');
+          return `${h}:${m}:${s}`;
+        }
+    
+        countdownBox.innerHTML = `
+          ⏱️ Time until Thursday Night Game: <span style="color:${t1 < 3600000 ? 'red' : 'inherit'}">${format(t1)}</span><br>
+          🕐 Time until Sunday 1 PM ET: <span style="color:${t2 < 3600000 ? 'red' : 'inherit'}">${format(t2)}</span>
+        `;
+      }
+    
+      updateCountdowns();
+      setInterval(updateCountdowns, 1000);
+    }
+
   </script>
 </head>
 <body>
@@ -197,6 +234,7 @@
     <button id="logoutBtn">Logout</button>
   </div>
   <h1 id="welcome">Welcome</h1>
+  <div id="countdownBox" style="margin: 1em 0; font-weight: bold;"></div>
   <p>This is your league home page. Use the nav above to explore your picks and standings.</p>
 
   <h2>Your Picks</h2>
