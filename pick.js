@@ -12,8 +12,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const weekSelect = document.getElementById('week');
   const teamSelect = document.getElementById('team');
+  const confirmBox = document.getElementById('confirmBox');
 
-  // Populate week dropdown
   Object.keys(schedule).sort((a, b) => parseInt(a) - parseInt(b)).forEach(week => {
     const games = schedule[week];
     const startDate = new Date(games[0].date);
@@ -47,7 +47,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const used = JSON.parse(localStorage.getItem('usedTeams') || '{}')[user] || [];
 
     const teamsAdded = new Set();
-
     if (!games || !Array.isArray(games)) return;
 
     games.forEach(game => {
@@ -62,6 +61,22 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // Create hidden iframe for form target
+  const iframe = document.createElement('iframe');
+  iframe.name = 'hiddenFrame';
+  iframe.style.display = 'none';
+  document.body.appendChild(iframe);
+
+  // Show green box after submission (onload of iframe)
+  iframe.onload = () => {
+    confirmBox.textContent = '✅ Pick submitted successfully!';
+    confirmBox.style.color = 'green';
+    confirmBox.style.display = 'block';
+    setTimeout(() => {
+      confirmBox.style.display = 'none';
+    }, 3000);
+  };
+
   document.getElementById('pickForm').addEventListener('submit', function (e) {
     e.preventDefault();
     const week = weekSelect.value;
@@ -71,6 +86,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const form = document.createElement('form');
     form.method = 'POST';
     form.action = 'https://script.google.com/macros/s/AKfycbxlxW1BRCg03ScwtukXcWrUsEh_59j9gzAhoXbjzU_DMHFLwJe_ngVDHS9LntUhYVcy/exec';
+    form.target = 'hiddenFrame';
 
     const uInput = document.createElement('input');
     uInput.type = 'hidden';
