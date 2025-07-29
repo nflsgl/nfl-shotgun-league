@@ -152,6 +152,23 @@ const teamLogos = {
           document.getElementById("welcome").insertAdjacentElement("afterend", errorMsg);
         });
     });
+
+    // Render the user's full pick history
+      const tableBody = document.querySelector("#userPicksTable tbody");
+      if (tableBody && allPicks[user]) {
+        const userPicks = allPicks[user];
+        const sortedWeeks = Object.keys(userPicks).sort((a, b) => parseInt(a) - parseInt(b));
+        sortedWeeks.forEach(week => {
+          const team = userPicks[week];
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td style="padding: 6px 0;">Week ${week}</td>
+            <td style="padding: 6px 0;">${team}</td>
+          `;
+          tableBody.appendChild(row);
+        });
+      }
+
   </script>
 </head>
 <body>
@@ -163,5 +180,16 @@ const teamLogos = {
   </div>
   <h1 id="welcome">Welcome</h1>
   <p>This is your league home page. Use the nav above to explore your picks and standings.</p>
+  <h2>Your Picks</h2>
+  <table id="userPicksTable" style="width: 100%; border-collapse: collapse;">
+    <thead>
+      <tr>
+        <th style="text-align:left; border-bottom: 2px solid #ccc;">Week</th>
+        <th style="text-align:left; border-bottom: 2px solid #ccc;">Team</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
 </body>
 </html>
