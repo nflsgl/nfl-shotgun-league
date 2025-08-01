@@ -1,4 +1,3 @@
-
 document.addEventListener('DOMContentLoaded', async () => {
   const user = localStorage.getItem('user');
   const loginTime = parseInt(localStorage.getItem('loginTime'), 10);
@@ -21,7 +20,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const res = await fetch('https://script.google.com/macros/s/AKfycbxlxW1BRCg03ScwtukXcWrUsEh_59j9gzAhoXbjzU_DMHFLwJe_ngVDHS9LntUhYVcy/exec');
     const allPicks = await res.json();
     const userPicks = allPicks[user.toLowerCase()] || {};
-    userUsedTeams = Object.values(userPicks);
+    userUsedTeams = Object.values(userPicks).map(t => t.toLowerCase());
     localStorage.setItem('usedTeams', JSON.stringify({ [user]: userUsedTeams }));
   } catch (err) {
     console.error('Error fetching used teams:', err);
@@ -57,19 +56,26 @@ document.addEventListener('DOMContentLoaded', async () => {
   function populateTeamsForWeek(week) {
     teamSelect.innerHTML = '';
     const games = schedule[week];
-    const used = userUsedTeams;
+    if (!games || !Array.isArray(games)) return;
 
     const teamsAdded = new Set();
-    if (!games || !Array.isArray(games)) return;
 
     games.forEach(game => {
       [true, false].forEach(isHome => {
         const { value, label } = getMatchupOption(game, isHome);
-        if (value && !used.includes(value) && !teamsAdded.has(value)) {
-          const option = new Option(label, value);
-          teamSelect.appendChild(option);
-          teamsAdded.add(value);
+        if (!value || teamsAdded.has(value)) return;
+
+        const option = new Option(label, value);
+        const used = userUsedTeams.includes(value.toLowerCase());
+
+        if (used) {
+          option.disabled = true;
+          option.style.textDecoration = 'line-through';
+          option.style.color = 'gray';
         }
+
+        teamSelect.appendChild(option);
+        teamsAdded.add(value);
       });
     });
   }
