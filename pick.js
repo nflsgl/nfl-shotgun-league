@@ -18,10 +18,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   try {
     const res = await fetch('https://script.google.com/macros/s/AKfycbxlxW1BRCg03ScwtukXcWrUsEh_59j9gzAhoXbjzU_DMHFLwJe_ngVDHS9LntUhYVcy/exec');
-    const allPicks = await res.json();
-    const userPicks = allPicks[user.toLowerCase()] || {};
-    userUsedTeams = Object.values(userPicks).map(t => t.toLowerCase());
-    localStorage.setItem('usedTeams', JSON.stringify({ [user]: userUsedTeams }));
+    const allPicks = await res.json(); // Expecting: [{ username, week, team }, ...]
+
+    // Filter down to just this user's picks
+    const filtered = allPicks.filter(
+      row => row.username && row.username.toLowerCase() === user.toLowerCase()
+    );
+    userUsedTeams = filtered.map(row => row.team.toLowerCase());
+
+    console.log('Used teams for user:', userUsedTeams);
   } catch (err) {
     console.error('Error fetching used teams:', err);
   }
@@ -66,9 +71,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!value || teamsAdded.has(value)) return;
 
         const option = new Option(label, value);
-        const used = userUsedTeams.includes(value.toLowerCase());
+        const isUsed = userUsedTeams.includes(value.toLowerCase());
 
-        if (used) {
+        if (isUsed) {
           option.disabled = true;
           option.style.textDecoration = 'line-through';
           option.style.color = 'gray';
