@@ -18,14 +18,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   try {
     const res = await fetch('https://script.google.com/macros/s/AKfycbxlxW1BRCg03ScwtukXcWrUsEh_59j9gzAhoXbjzU_DMHFLwJe_ngVDHS9LntUhYVcy/exec');
-    const allPicks = await res.json(); // Expecting: [{ username, week, team }, ...]
+    const allPicks = await res.json();
+    console.log('RAW picks data from server:', allPicks);
 
-    // Filter down to just this user's picks
-    const filtered = allPicks.filter(
-      row => row.username && row.username.toLowerCase() === user.toLowerCase()
-    );
-    userUsedTeams = filtered.map(row => row.team.toLowerCase());
-
+    const userPicks = allPicks[user.toLowerCase()] || {};
+    userUsedTeams = Object.values(userPicks).map(t => t.toLowerCase());
     console.log('Used teams for user:', userUsedTeams);
   } catch (err) {
     console.error('Error fetching used teams:', err);
