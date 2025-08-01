@@ -20,10 +20,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     const res = await fetch(`https://script.google.com/macros/s/AKfycbxlxW1BRCg03ScwtukXcWrUsEh_59j9gzAhoXbjzU_DMHFLwJe_ngVDHS9LntUhYVcy/exec?username=${encodeURIComponent(user.toLowerCase())}`);
     const allPicks = await res.json();
     console.log('RAW picks data from server:', allPicks);
-
-    const filtered = allPicks.filter(
-      row => row.username && row.username.toLowerCase() === user.toLowerCase()
-    );
+    console.log('Username from localStorage:', user);
+  
+    const filtered = allPicks.filter(row => {
+      const match = row.username?.toLowerCase?.().trim() === user.toLowerCase().trim();
+      console.log(`Comparing row: "${row.username}" → Match? ${match}`);
+      return match;
+    });
+  
     userUsedTeams = filtered.map(row => row.team?.toLowerCase?.()).filter(Boolean);
     console.log('Used teams for user:', userUsedTeams);
   } catch (err) {
