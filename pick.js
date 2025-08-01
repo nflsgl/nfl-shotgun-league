@@ -17,11 +17,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   let userUsedTeams = [];
 
   try {
-    const res = await fetch('https://script.google.com/macros/s/AKfycbxlxW1BRCg03ScwtukXcWrUsEh_59j9gzAhoXbjzU_DMHFLwJe_ngVDHS9LntUhYVcy/exec');
-    const allPicks = await res.json();
-    console.log('RAW picks data from server:', allPicks);
-
-    const userPicks = allPicks[user.toLowerCase()] || {};
+    const res = await fetch(`https://script.google.com/macros/s/AKfycbxlxW1BRCg03ScwtukXcWrUsEh_59j9gzAhoXbjzU_DMHFLwJe_ngVDHS9LntUhYVcy/exec?username=${encodeURIComponent(user.toLowerCase())}`);
+    const userPicks = await res.json();
+    console.log('RAW picks data from server:', userPicks);
+  
     userUsedTeams = Object.values(userPicks).map(t => t.toLowerCase());
     console.log('Used teams for user:', userUsedTeams);
   } catch (err) {
