@@ -16,9 +16,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   let userUsedTeams = [];
 
-  // ⬇️ NEW CORS-SAFE fetch
+  // ✅ Use Netlify function for fetching picks
   try {
-    const res = await fetch(`https://script.google.com/macros/s/AKfycbxlxW1BRCg03ScwtukXcWrUsEh_59j9gzAhoXbjzU_DMHFLwJe_ngVDHS9LntUhYVcy/exec?username=${encodeURIComponent(user.toLowerCase())}`);
+    const res = await fetch(`https://nflsgl.app/.netlify/functions/fetchUserPicks?username=${encodeURIComponent(user.toLowerCase())}`);
     const picks = await res.json();
     console.log('User picks:', picks);
 
@@ -82,7 +82,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
-  // Keep iframe method for pick submission (no CORS needed for that)
+  // Hidden iframe for POST submission (still using Apps Script)
   const iframe = document.createElement('iframe');
   iframe.name = 'hiddenFrame';
   iframe.style.display = 'none';
