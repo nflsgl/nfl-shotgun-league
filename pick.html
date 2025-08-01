@@ -3,15 +3,15 @@
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Submit Pick - Shotgun League</title>
-  <link rel="stylesheet" href="style.css">
-  <script src="/nfl-shotgun-league/schedule.js"></script>
-  <script src="/nfl-shotgun-league/pick.js" defer></script>
+  <link rel="stylesheet" href="/style.css">
+  <script src="/schedule.js"></script>
+  <script src="/pick.js" defer></script>
 </head>
 <body>
   <div id="nav">
-    <a href="/nfl-shotgun-league/home.html">Home</a> |
-    <a href="/nfl-shotgun-league/leaderboard.html">Leaderboard</a> |
-    <a href="/nfl-shotgun-league/matrix.html">Matrix</a>
+    <a href="/home.html">Home</a> |
+    <a href="/leaderboard.html">Leaderboard</a> |
+    <a href="/matrix.html">Matrix</a>
   </div>
 
   <h1>Submit Your Pick</h1>
@@ -43,13 +43,12 @@
     <label for="team">Select Team:</label>
     <select id="team" required>
       <option value="">-- Choose a team --</option>
-      <!-- Options will be dynamically filled based on schedule.js -->
+      <!-- Options filled dynamically -->
     </select>
 
     <button type="submit">Submit Pick</button>
   </form>
 
-<p id="confirmBox" style="display:none; background: #d4edda; color: #155724; padding: 10px; border-radius: 4px; margin-top: 10px;"></p>
-  
+  <p id="confirmBox" style="display:none; background: #d4edda; color: #155724; padding: 10px; border-radius: 4px; margin-top: 10px;"></p>
 </body>
 </html>
