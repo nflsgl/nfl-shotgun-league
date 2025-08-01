@@ -16,9 +16,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   let userUsedTeams = [];
 
-  // ⬇️ Fetch used teams via Netlify function
+  // 🔄 Fetch user's used picks from Netlify function
   try {
-    const res = await fetch(`/functions/submitPicks?username=${encodeURIComponent(user.toLowerCase())}`);
+    const res = await fetch(`https://nflsgl.netlify.app/.netlify/functions/fetchUserPicks?username=${encodeURIComponent(user.toLowerCase())}`);
     const picks = await res.json();
     console.log('User picks:', picks);
 
@@ -82,52 +82,40 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
-  // Create hidden iframe for pick submission
-  const iframe = document.createElement('iframe');
-  iframe.name = 'hiddenFrame';
-  iframe.style.display = 'none';
-  document.body.appendChild(iframe);
-
-  iframe.onload = () => {
-    confirmBox.textContent = '✅ Pick submitted successfully!';
-    confirmBox.style.color = 'green';
-    confirmBox.style.display = 'block';
-    setTimeout(() => {
-      confirmBox.style.display = 'none';
-    }, 3000);
-  };
-
-  document.getElementById('pickForm').addEventListener('submit', function (e) {
+  // 🔄 Submit pick using Netlify function (no iframe required)
+  document.getElementById('pickForm').addEventListener('submit', async function (e) {
     e.preventDefault();
     const week = weekSelect.value;
     const team = teamSelect.value;
     if (!week || !team) return;
 
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = '/functions/submitPick';
-    form.target = 'hiddenFrame';
+    try {
+      const res = await fetch('https://nflsgl.netlify.app/.netlify/functions/submitPick', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: user, week, team })
+      });
 
-    const uInput = document.createElement('input');
-    uInput.type = 'hidden';
-    uInput.name = 'username';
-    uInput.value = user;
+      const result = await res.json();
 
-    const wInput = document.createElement('input');
-    wInput.type = 'hidden';
-    wInput.name = 'week';
-    wInput.value = week;
+      if (res.ok) {
+        confirmBox.textContent = '✅ Pick submitted successfully!';
+        confirmBox.style.color = 'green';
+        confirmBox.style.display = 'block';
+      } else {
+        confirmBox.textContent = `⚠️ Error: ${result.error || 'Failed to submit pick'}`;
+        confirmBox.style.color = 'red';
+        confirmBox.style.display = 'block';
+      }
 
-    const tInput = document.createElement('input');
-    tInput.type = 'hidden';
-    tInput.name = 'team';
-    tInput.value = team;
-
-    form.appendChild(uInput);
-    form.appendChild(wInput);
-    form.appendChild(tInput);
-
-    document.body.appendChild(form);
-    form.submit();
+      setTimeout(() => {
+        confirmBox.style.display = 'none';
+      }, 4000);
+    } catch (err) {
+      console.error('Submission error:', err);
+      confirmBox.textContent = '⚠️ Failed to submit pick. Please try again.';
+      confirmBox.style.color = 'red';
+      confirmBox.style.display = 'block';
+    }
   });
 });
