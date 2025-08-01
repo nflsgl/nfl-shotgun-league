@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   if (!user || !loginTime || now - loginTime > oneHour) {
     localStorage.clear();
-    window.location.href = '/nfl-shotgun-league/index.html';
+    window.location.href = '/index.html';
     return;
   }
 
@@ -16,9 +16,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   let userUsedTeams = [];
 
-  // ✅ Use Netlify function for fetching picks
+  // ⬇️ Fetch used teams via Netlify function
   try {
-    const res = await fetch(`https://nflsgl.app/.netlify/functions/fetchUserPicks?username=${encodeURIComponent(user.toLowerCase())}`);
+    const res = await fetch(`/functions/fetchUserPicks?username=${encodeURIComponent(user.toLowerCase())}`);
     const picks = await res.json();
     console.log('User picks:', picks);
 
@@ -82,7 +82,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
-  // Hidden iframe for POST submission (still using Apps Script)
+  // Create hidden iframe for pick submission
   const iframe = document.createElement('iframe');
   iframe.name = 'hiddenFrame';
   iframe.style.display = 'none';
@@ -105,7 +105,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const form = document.createElement('form');
     form.method = 'POST';
-    form.action = 'https://script.google.com/macros/s/AKfycbxlxW1BRCg03ScwtukXcWrUsEh_59j9gzAhoXbjzU_DMHFLwJe_ngVDHS9LntUhYVcy/exec';
+    form.action = '/functions/submitPick';
     form.target = 'hiddenFrame';
 
     const uInput = document.createElement('input');
