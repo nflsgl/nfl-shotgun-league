@@ -14,12 +14,12 @@
       font: inherit;
       padding: 0;
     }
-  
+
     #pickNotice {
       margin-top: 1em;
       font-weight: bold;
     }
-  
+
     .team-logo {
       display: inline-block;
       vertical-align: middle;
@@ -27,23 +27,23 @@
       height: 28px;
       margin-right: 8px;
     }
-  
+
     #userPicksTable td {
       padding: 8px;
       border-bottom: 1px solid #ccc;
       word-break: break-word;
     }
-  
+
     @media (max-width: 600px) {
       table {
         width: 100%;
         border-collapse: collapse;
       }
-    
+
       thead {
         display: none;
       }
-    
+
       tr {
         display: flex;
         justify-content: space-between;
@@ -53,7 +53,7 @@
         background-color: #f9f9f9;
         border-radius: 6px;
       }
-    
+
       td {
         padding: 0;
         border: none;
@@ -61,21 +61,20 @@
         display: flex;
         align-items: center;
       }
-    
+
       td:nth-child(1) {
         font-weight: bold;
         margin-right: 12px;
       }
-    
+
       td:nth-child(2) img {
         width: 24px;
         margin-right: 6px;
       }
     }
-
   </style>
 
-  <script src="/nfl-shotgun-league/schedule.js"></script>
+  <script src="schedule.js"></script>
   <script>
     const teamLogos = {
       "Arizona Cardinals": "cardinals.png",
@@ -120,7 +119,7 @@
 
       if (!user || !loginTime || now - loginTime > oneHour) {
         localStorage.clear();
-        window.location.href = "/nfl-shotgun-league/index.html";
+        window.location.href = "index.html";
         return;
       }
 
@@ -130,11 +129,10 @@
         if (confirm("Are you sure you want to log out?")) {
           localStorage.removeItem("user");
           localStorage.removeItem("loginTime");
-          window.location.href = "/nfl-shotgun-league/index.html";
+          window.location.href = "index.html";
         }
       });
 
-      // Determine current week
       const today = new Date();
       let currentWeek = null;
       for (const [week, games] of Object.entries(schedule)) {
@@ -156,9 +154,8 @@
       localStorage.setItem("currentWeek", currentWeek);
 
       startCountdowns(currentWeek);
-      
-      // Fetch pick history from Google Apps Script
-      fetch(`https://script.google.com/macros/s/AKfycbxlxW1BRCg03ScwtukXcWrUsEh_59j9gzAhoXbjzU_DMHFLwJe_ngVDHS9LntUhYVcy/exec?username=${encodeURIComponent(user)}`)
+
+      fetch(`https://nflsgl.netlify.app/functions/fetchUserPicks?username=${encodeURIComponent(user)}`)
         .then(res => res.json())
         .then(picks => {
           const thisWeekPick = picks.find(p => p.week == currentWeek);
@@ -168,30 +165,28 @@
           if (thisWeekPick) {
             const pickedTeam = thisWeekPick.team;
             const logoFile = teamLogos[pickedTeam] || "default.png";
-            const logoImg = `<img src="/nfl-shotgun-league/logos/${logoFile}" alt="${pickedTeam}" class="team-logo">`;
+            const logoImg = `<img src="logos/${logoFile}" alt="${pickedTeam}" class="team-logo">`;
             pickMsg.innerHTML = `
               ${logoImg}
               You have already selected <strong>${pickedTeam}</strong> for Week ${currentWeek}.<br>
-              If you want to change your pick, press <a href="/nfl-shotgun-league/pick.html">Submit Pick</a> again.<br>
+              If you want to change your pick, press <a href="pick.html">Submit Pick</a> again.<br>
               You will not be able to change your pick once your selected team has kicked off.
             `;
           } else {
             pickMsg.innerHTML = `
               ⚠️ You have not yet made a pick for Week ${currentWeek}.<br>
-              Please go to <a href="/nfl-shotgun-league/pick.html">Submit Pick</a> to lock one in before kickoff.
+              Please go to <a href="pick.html">Submit Pick</a> to lock one in before kickoff.
             `;
           }
 
           document.getElementById("welcome").insertAdjacentElement("afterend", pickMsg);
 
-          // Commish link
           if (user === "alecb" || user === "mitchm") {
             const commishLink = document.createElement("p");
-            commishLink.innerHTML = `<a href="/nfl-shotgun-league/commissioner.html">🛠️ Commissioner Panel</a>`;
+            commishLink.innerHTML = `<a href="commissioner.html">🛠️ Commissioner Panel</a>`;
             pickMsg.insertAdjacentElement("afterend", commishLink);
           }
 
-          // Render full pick history
           const tableBody = document.querySelector("#userPicksTable tbody");
           const sorted = [...picks].sort((a, b) => parseInt(a.week) - parseInt(b.week));
           sorted.forEach(p => {
@@ -205,7 +200,7 @@
             row.innerHTML = `
               <td>Week ${p.week}</td>
               <td>
-                <img src="/nfl-shotgun-league/logos/${logoFile}" alt="${p.team}" style="width: 24px; vertical-align: middle; margin-right: 8px;">
+                <img src="logos/${logoFile}" alt="${p.team}" style="width: 24px; vertical-align: middle; margin-right: 8px;">
                 ${p.team}
               </td>
             `;
@@ -224,19 +219,18 @@
     function startCountdowns(weekNum) {
       const games = schedule[weekNum];
       if (!games || games.length === 0) return;
-    
+
       const countdownBox = document.getElementById("countdownBox");
-    
-      // Get first Thursday game (or fallback to first game)
+
       const thursdayGame = games.find(g => new Date(g.date).getDay() === 4) || games[0];
       const sunday1pm = new Date(games.find(g => new Date(g.date).getDay() === 0)?.date || games[0].date);
-      sunday1pm.setHours(13, 0, 0, 0); // force Sunday at 1PM
-    
+      sunday1pm.setHours(13, 0, 0, 0);
+
       function updateCountdowns() {
         const now = new Date();
         const t1 = Math.max(0, new Date(thursdayGame.date) - now);
         const t2 = Math.max(0, sunday1pm - now);
-    
+
         function format(ms) {
           const totalSec = Math.floor(ms / 1000);
           const h = String(Math.floor(totalSec / 3600)).padStart(2, '0');
@@ -244,24 +238,23 @@
           const s = String(totalSec % 60).padStart(2, '0');
           return `${h}:${m}:${s}`;
         }
-    
+
         countdownBox.innerHTML = `
           ⏱️ Time until Thursday Night Game: <span style="color:${t1 < 3600000 ? 'red' : 'inherit'}">${format(t1)}</span><br>
           🕐 Time until Sunday 1 PM ET: <span style="color:${t2 < 3600000 ? 'red' : 'inherit'}">${format(t2)}</span>
         `;
       }
-    
+
       updateCountdowns();
       setInterval(updateCountdowns, 1000);
     }
-
   </script>
 </head>
 <body>
   <div id="nav">
-    <a href="/nfl-shotgun-league/pick.html">Submit Pick</a> |
-    <a href="/nfl-shotgun-league/leaderboard.html">Leaderboard</a> |
-    <a href="/nfl-shotgun-league/matrix.html">Matrix</a> |
+    <a href="pick.html">Submit Pick</a> |
+    <a href="leaderboard.html">Leaderboard</a> |
+    <a href="matrix.html">Matrix</a> |
     <button id="logoutBtn">Logout</button>
   </div>
   <h1 id="welcome">Welcome</h1>
