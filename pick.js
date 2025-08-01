@@ -16,19 +16,46 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   let userUsedTeams = [];
 
-  try {
-    const res = await fetch(`https://script.google.com/macros/s/AKfycbxlxW1BRCg03ScwtukXcWrUsEh_59j9gzAhoXbjzU_DMHFLwJe_ngVDHS9LntUhYVcy/exec?username=${encodeURIComponent(user.toLowerCase())}`);
-    const allPicks = await res.json();
-    console.log('RAW picks data from server:', allPicks);
-    console.log('Username from localStorage:', user);
-  
-    const filtered = allPicks.filter(row => {
-      const match = row.username?.toLowerCase?.().trim() === user.toLowerCase().trim();
-      console.log(`Comparing row: "${row.username}" → Match? ${match}`);
-      return match;
+  // ⬇️ Use iframe + form POST to get user picks (no CORS)
+  async function fetchUserPicks(username) {
+    return new Promise((resolve, reject) => {
+      const iframe = document.createElement('iframe');
+      iframe.name = 'jsonFrame';
+      iframe.style.display = 'none';
+      document.body.appendChild(iframe);
+
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.target = 'jsonFrame';
+      form.action = 'https://script.google.com/macros/s/AKfycbxlxW1BRCg03ScwtukXcWrUsEh_59j9gzAhoXbjzU_DMHFLwJe_ngVDHS9LntUhYVcy/exec';
+
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = 'username';
+      input.value = username;
+
+      form.appendChild(input);
+      document.body.appendChild(form);
+
+      iframe.onload = () => {
+        try {
+          const content = iframe.contentDocument.body.textContent;
+          const data = JSON.parse(content);
+          resolve(data);
+        } catch (err) {
+          reject(err);
+        }
+      };
+
+      form.submit();
     });
-  
-    userUsedTeams = filtered.map(row => row.team?.toLowerCase?.()).filter(Boolean);
+  }
+
+  try {
+    const picks = await fetchUserPicks(user.toLowerCase());
+    console.log('User picks:', picks);
+
+    userUsedTeams = picks.map(row => row.team?.toLowerCase?.()).filter(Boolean);
     console.log('Used teams for user:', userUsedTeams);
   } catch (err) {
     console.error('Error fetching used teams:', err);
@@ -88,7 +115,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
-  // Create hidden iframe for form target
+  // Create hidden iframe for form target (for submitting pick)
   const iframe = document.createElement('iframe');
   iframe.name = 'hiddenFrame';
   iframe.style.display = 'none';
