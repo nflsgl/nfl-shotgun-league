@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // ⬇️ Fetch used teams via Netlify function
   try {
-    const res = await fetch(`/functions/fetchUserPicks?username=${encodeURIComponent(user.toLowerCase())}`);
+    const res = await fetch(`/functions/submitPicks?username=${encodeURIComponent(user.toLowerCase())}`);
     const picks = await res.json();
     console.log('User picks:', picks);
 
