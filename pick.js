@@ -16,43 +16,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   let userUsedTeams = [];
 
-  // ⬇️ Use iframe + form POST to get user picks (no CORS)
-  async function fetchUserPicks(username) {
-    return new Promise((resolve, reject) => {
-      const iframe = document.createElement('iframe');
-      iframe.name = 'jsonFrame';
-      iframe.style.display = 'none';
-      document.body.appendChild(iframe);
-
-      const form = document.createElement('form');
-      form.method = 'POST';
-      form.target = 'jsonFrame';
-      form.action = 'https://script.google.com/macros/s/AKfycbxlxW1BRCg03ScwtukXcWrUsEh_59j9gzAhoXbjzU_DMHFLwJe_ngVDHS9LntUhYVcy/exec';
-
-      const input = document.createElement('input');
-      input.type = 'hidden';
-      input.name = 'username';
-      input.value = username;
-
-      form.appendChild(input);
-      document.body.appendChild(form);
-
-      iframe.onload = () => {
-        try {
-          const content = iframe.contentDocument.body.textContent;
-          const data = JSON.parse(content);
-          resolve(data);
-        } catch (err) {
-          reject(err);
-        }
-      };
-
-      form.submit();
-    });
-  }
-
+  // ⬇️ NEW CORS-SAFE fetch
   try {
-    const picks = await fetchUserPicks(user.toLowerCase());
+    const res = await fetch(`https://script.google.com/macros/s/AKfycbxlxW1BRCg03ScwtukXcWrUsEh_59j9gzAhoXbjzU_DMHFLwJe_ngVDHS9LntUhYVcy/exec?username=${encodeURIComponent(user.toLowerCase())}`);
+    const picks = await res.json();
     console.log('User picks:', picks);
 
     userUsedTeams = picks.map(row => row.team?.toLowerCase?.()).filter(Boolean);
@@ -115,7 +82,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
-  // Create hidden iframe for form target (for submitting pick)
+  // Keep iframe method for pick submission (no CORS needed for that)
   const iframe = document.createElement('iframe');
   iframe.name = 'hiddenFrame';
   iframe.style.display = 'none';
