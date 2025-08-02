@@ -1,32 +1,53 @@
-export async function handler(event, context) {
-  const username = event.queryStringParameters.username;
-  if (!username) {
+import { google } from 'googleapis';
+
+export async function handler(event) {
+  if (event.httpMethod !== 'POST') {
     return {
-      statusCode: 400,
-      body: JSON.stringify({ error: 'Missing username' }),
-      headers: { 'Access-Control-Allow-Origin': '*' },
+      statusCode: 405,
+      body: 'Method Not Allowed',
     };
   }
 
-  const url = `https://script.google.com/macros/s/AKfycbxlxW1BRCg03ScwtukXcWrUsEh_59j9gzAhoXbjzU_DMHFLwJe_ngVDHS9LntUhYVcy/exec?username=${encodeURIComponent(username)}`;
+  const { username, week, team } = JSON.parse(event.body || '{}');
+
+  if (!username || !week || !team) {
+    return {
+      statusCode: 400,
+      body: JSON.stringify({ error: 'Missing one or more required fields.' }),
+    };
+  }
 
   try {
-    const res = await fetch(url);
-    const body = await res.text(); // may not always be valid JSON
+    const creds = JSON.parse(process.env.GOOGLE_CREDS);
+    const auth = new google.auth.GoogleAuth({
+      credentials: creds,
+      scopes: ['https://www.googleapis.com/auth/spreadsheets'],
+    });
+
+    const sheets = google.sheets({ version: 'v4', auth });
+
+    const spreadsheetId = '1C1Kh5h7Aj1pyFHJXFZB_JG3Nhbxfoyg-x4u6LUH6h0U'; // Your actual Sheet ID
+    const sheetName = 'Picks';
+
+    // Add new row
+    await sheets.spreadsheets.values.append({
+      spreadsheetId,
+      range: `${sheetName}!A:C`,
+      valueInputOption: 'RAW',
+      requestBody: {
+        values: [[username, week, team]],
+      },
+    });
+
     return {
       statusCode: 200,
-      body,
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Content-Type': 'application/json',
-      },
+      body: JSON.stringify({ message: 'Pick saved successfully' }),
     };
   } catch (err) {
+    console.error('Error saving pick:', err);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: 'Upstream fetch failed' }),
-      headers: { 'Access-Control-Allow-Origin': '*' },
+      body: JSON.stringify({ error: 'Failed to save pick' }),
     };
   }
 }
-
