@@ -29,7 +29,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   try {
     const response = await fetch('/.netlify/functions/fetchUserPicks');
-    const data = await response.json(); // expects an array of picks
+    const raw = await response.json();
+    console.log('Fetched raw pick data:', raw);
+    const data = Array.isArray(raw) ? raw : raw.data || [];
+
 
     const scores = {};
 
