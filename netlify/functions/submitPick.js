@@ -12,44 +12,23 @@ export async function handler(event) {
   const contentType = event.headers['content-type'] || '';
   let data = {};
 
-  try {
-    if (contentType.includes('application/json')) {
-      data = JSON.parse(event.body || '{}');
-    } else if (contentType.includes('application/x-www-form-urlencoded')) {
-      data = querystring.parse(event.body || '');
-    } else {
-      console.error('Unsupported content type:', contentType);
-      return {
-        statusCode: 400,
-        body: JSON.stringify({ error: 'Unsupported content type' }),
-      };
-    }
-  } catch (parseErr) {
-    console.error('Error parsing body:', parseErr);
-    return {
-      statusCode: 400,
-      body: JSON.stringify({ error: 'Invalid request body' }),
-    };
+  if (contentType.includes('application/json')) {
+    data = JSON.parse(event.body || '{}');
+  } else if (contentType.includes('application/x-www-form-urlencoded')) {
+    data = querystring.parse(event.body || '');
   }
 
   const { username, week, team } = data;
 
   if (!username || !week || !team) {
-    console.error('Missing field(s)', { username, week, team });
     return {
       statusCode: 400,
       body: JSON.stringify({ error: 'Missing one or more required fields.' }),
     };
   }
 
-  console.log('Received pick:', { username, week, team });
-
   try {
-    const credsRaw = process.env.GOOGLE_CREDS;
-    if (!credsRaw) throw new Error('GOOGLE_CREDS env variable is not defined');
-
-    const creds = JSON.parse(credsRaw);
-
+    const creds = JSON.parse(process.env.GOOGLE_CREDS);
     const auth = new google.auth.GoogleAuth({
       credentials: creds,
       scopes: ['https://www.googleapis.com/auth/spreadsheets'],
@@ -60,22 +39,47 @@ export async function handler(event) {
     const spreadsheetId = '1C1Kh5h7Aj1pyFHJXFZB_JG3Nhbxfoyg-x4u6LUH6h0U';
     const sheetName = 'Picks';
 
-    await sheets.spreadsheets.values.append({
+    // Load current data
+    const readRes = await sheets.spreadsheets.values.get({
       spreadsheetId,
-      range: `${sheetName}!A:C`,
-      valueInputOption: 'RAW',
-      requestBody: {
-        values: [[username, week, team]],
-      },
+      range: `${sheetName}!A2:C`,
     });
 
-    console.log('✅ Pick saved successfully');
+    const rows = readRes.data.values || [];
+
+    // Find if there's an existing pick for same username/week
+    const rowIndex = rows.findIndex(
+      row => row[0]?.toLowerCase() === username.toLowerCase() && row[1] == week
+    );
+
+    if (rowIndex >= 0) {
+      // Update existing pick
+      await sheets.spreadsheets.values.update({
+        spreadsheetId,
+        range: `${sheetName}!A${rowIndex + 2}:C${rowIndex + 2}`,
+        valueInputOption: 'RAW',
+        requestBody: {
+          values: [[username, week, team]],
+        },
+      });
+    } else {
+      // Append new pick
+      await sheets.spreadsheets.values.append({
+        spreadsheetId,
+        range: `${sheetName}!A:C`,
+        valueInputOption: 'RAW',
+        requestBody: {
+          values: [[username, week, team]],
+        },
+      });
+    }
+
     return {
       statusCode: 200,
       body: JSON.stringify({ message: 'Pick saved successfully' }),
     };
   } catch (err) {
-    console.error('❌ Error saving pick:', err.message || err);
+    console.error('Error saving pick:', err);
     return {
       statusCode: 500,
       body: JSON.stringify({ error: 'Failed to save pick' }),
