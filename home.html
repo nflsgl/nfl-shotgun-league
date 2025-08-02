@@ -4,272 +4,72 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Home - Shotgun League</title>
   <link rel="stylesheet" href="style.css">
+  <script src="/schedule.js" defer></script>
+  <script src="/home.js" defer></script>
   <style>
-    #logoutBtn {
-      background: none;
-      border: none;
-      color: #00f;
-      text-decoration: underline;
-      cursor: pointer;
-      font: inherit;
-      padding: 0;
+    #nav {
+      padding: 10px;
+      text-align: center;
     }
 
-    #pickNotice {
-      margin-top: 1em;
+    #nav a {
+      margin: 0 10px;
+      text-decoration: none;
       font-weight: bold;
     }
 
-    .team-logo {
-      display: inline-block;
-      vertical-align: middle;
-      width: 28px;
-      height: 28px;
-      margin-right: 8px;
+    #currentPicks {
+      margin: 20px auto;
+      max-width: 600px;
+      padding: 10px;
+      background: #f0f0f0;
+      border-radius: 8px;
     }
 
-    #userPicksTable td {
-      padding: 8px;
+    .pick-entry {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 0;
       border-bottom: 1px solid #ccc;
-      word-break: break-word;
+    }
+
+    .pick-entry:last-child {
+      border-bottom: none;
+    }
+
+    .team-logo {
+      width: 30px;
+      height: 30px;
+      object-fit: contain;
+      margin-right: 10px;
     }
 
     @media (max-width: 600px) {
-      table {
-        width: 100%;
-        border-collapse: collapse;
-      }
-
-      thead {
+      #countdownSection {
         display: none;
       }
 
-      tr {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 12px;
-        margin-bottom: 10px;
-        background-color: #f9f9f9;
-        border-radius: 6px;
-      }
-
-      td {
-        padding: 0;
-        border: none;
-        font-size: 16px;
-        display: flex;
-        align-items: center;
-      }
-
-      td:nth-child(1) {
-        font-weight: bold;
-        margin-right: 12px;
-      }
-
-      td:nth-child(2) img {
-        width: 24px;
-        margin-right: 6px;
+      .pick-entry {
+        flex-direction: column;
+        align-items: flex-start;
       }
     }
   </style>
-
-  <script src="schedule.js"></script>
-  <script>
-    const teamLogos = {
-      "Arizona Cardinals": "cardinals.png",
-      "Atlanta Falcons": "falcons.png",
-      "Baltimore Ravens": "ravens.png",
-      "Buffalo Bills": "bills.png",
-      "Carolina Panthers": "panthers.png",
-      "Chicago Bears": "bears.png",
-      "Cincinnati Bengals": "bengals.png",
-      "Cleveland Browns": "browns.png",
-      "Dallas Cowboys": "cowboys.png",
-      "Denver Broncos": "broncos.png",
-      "Detroit Lions": "lions.png",
-      "Green Bay Packers": "packers.png",
-      "Houston Texans": "texans.png",
-      "Indianapolis Colts": "colts.png",
-      "Jacksonville Jaguars": "jaguars.png",
-      "Kansas City Chiefs": "chiefs.png",
-      "Las Vegas Raiders": "raiders.png",
-      "Los Angeles Chargers": "chargers.png",
-      "Los Angeles Rams": "rams.png",
-      "Miami Dolphins": "dolphins.png",
-      "Minnesota Vikings": "vikings.png",
-      "New England Patriots": "patriots.png",
-      "New Orleans Saints": "saints.png",
-      "New York Giants": "giants.png",
-      "New York Jets": "jets.png",
-      "Philadelphia Eagles": "eagles.png",
-      "Pittsburgh Steelers": "steelers.png",
-      "San Francisco 49ers": "49ers.png",
-      "Seattle Seahawks": "seahawks.png",
-      "Tampa Bay Buccaneers": "buccaneers.png",
-      "Tennessee Titans": "titans.png",
-      "Washington Commanders": "commanders.png"
-    };
-
-    document.addEventListener("DOMContentLoaded", async function () {
-      const user = localStorage.getItem("user");
-      const loginTime = parseInt(localStorage.getItem("loginTime"), 10);
-      const now = Date.now();
-      const oneHour = 60 * 60 * 1000;
-
-      if (!user || !loginTime || now - loginTime > oneHour) {
-        localStorage.clear();
-        window.location.href = "index.html";
-        return;
-      }
-
-      document.getElementById("welcome").textContent = "Welcome, " + user;
-
-      document.getElementById("logoutBtn").addEventListener("click", function () {
-        if (confirm("Are you sure you want to log out?")) {
-          localStorage.removeItem("user");
-          localStorage.removeItem("loginTime");
-          window.location.href = "index.html";
-        }
-      });
-
-      const today = new Date();
-      let currentWeek = null;
-      for (const [week, games] of Object.entries(schedule)) {
-        for (const game of games) {
-          const gameDate = new Date(game.date);
-          if (today <= gameDate) {
-            currentWeek = week;
-            break;
-          }
-        }
-        if (currentWeek) break;
-      }
-
-      if (!currentWeek) {
-        const weeks = Object.keys(schedule).sort((a, b) => parseInt(a) - parseInt(b));
-        currentWeek = weeks[weeks.length - 1];
-      }
-
-      localStorage.setItem("currentWeek", currentWeek);
-
-      startCountdowns(currentWeek);
-
-      fetch(`https://nflsgl.netlify.app/functions/fetchUserPicks?username=${encodeURIComponent(user)}`)
-        .then(res => res.json())
-        .then(picks => {
-          const thisWeekPick = picks.find(p => p.week == currentWeek);
-          const pickMsg = document.createElement("p");
-          pickMsg.id = "pickNotice";
-
-          if (thisWeekPick) {
-            const pickedTeam = thisWeekPick.team;
-            const logoFile = teamLogos[pickedTeam] || "default.png";
-            const logoImg = `<img src="logos/${logoFile}" alt="${pickedTeam}" class="team-logo">`;
-            pickMsg.innerHTML = `
-              ${logoImg}
-              You have already selected <strong>${pickedTeam}</strong> for Week ${currentWeek}.<br>
-              If you want to change your pick, press <a href="pick.html">Submit Pick</a> again.<br>
-              You will not be able to change your pick once your selected team has kicked off.
-            `;
-          } else {
-            pickMsg.innerHTML = `
-              ⚠️ You have not yet made a pick for Week ${currentWeek}.<br>
-              Please go to <a href="pick.html">Submit Pick</a> to lock one in before kickoff.
-            `;
-          }
-
-          document.getElementById("welcome").insertAdjacentElement("afterend", pickMsg);
-
-          if (user === "alecb" || user === "mitchm") {
-            const commishLink = document.createElement("p");
-            commishLink.innerHTML = `<a href="commissioner.html">🛠️ Commissioner Panel</a>`;
-            pickMsg.insertAdjacentElement("afterend", commishLink);
-          }
-
-          const tableBody = document.querySelector("#userPicksTable tbody");
-          const sorted = [...picks].sort((a, b) => parseInt(a.week) - parseInt(b.week));
-          sorted.forEach(p => {
-            const row = document.createElement("tr");
-            if (p.week == currentWeek) {
-              row.style.backgroundColor = "#e0ffe0";
-              row.style.fontWeight = "bold";
-            }
-
-            const logoFile = teamLogos[p.team] || "default.png";
-            row.innerHTML = `
-              <td>Week ${p.week}</td>
-              <td>
-                <img src="logos/${logoFile}" alt="${p.team}" style="width: 24px; vertical-align: middle; margin-right: 8px;">
-                ${p.team}
-              </td>
-            `;
-            tableBody.appendChild(row);
-          });
-        })
-        .catch(err => {
-          console.error("Error fetching pick:", err);
-          const errorMsg = document.createElement("p");
-          errorMsg.id = "pickNotice";
-          errorMsg.textContent = "⚠️ Unable to load your pick. Please try refreshing.";
-          document.getElementById("welcome").insertAdjacentElement("afterend", errorMsg);
-        });
-    });
-
-    function startCountdowns(weekNum) {
-      const games = schedule[weekNum];
-      if (!games || games.length === 0) return;
-
-      const countdownBox = document.getElementById("countdownBox");
-
-      const thursdayGame = games.find(g => new Date(g.date).getDay() === 4) || games[0];
-      const sunday1pm = new Date(games.find(g => new Date(g.date).getDay() === 0)?.date || games[0].date);
-      sunday1pm.setHours(13, 0, 0, 0);
-
-      function updateCountdowns() {
-        const now = new Date();
-        const t1 = Math.max(0, new Date(thursdayGame.date) - now);
-        const t2 = Math.max(0, sunday1pm - now);
-
-        function format(ms) {
-          const totalSec = Math.floor(ms / 1000);
-          const h = String(Math.floor(totalSec / 3600)).padStart(2, '0');
-          const m = String(Math.floor((totalSec % 3600) / 60)).padStart(2, '0');
-          const s = String(totalSec % 60).padStart(2, '0');
-          return `${h}:${m}:${s}`;
-        }
-
-        countdownBox.innerHTML = `
-          ⏱️ Time until Thursday Night Game: <span style="color:${t1 < 3600000 ? 'red' : 'inherit'}">${format(t1)}</span><br>
-          🕐 Time until Sunday 1 PM ET: <span style="color:${t2 < 3600000 ? 'red' : 'inherit'}">${format(t2)}</span>
-        `;
-      }
-
-      updateCountdowns();
-      setInterval(updateCountdowns, 1000);
-    }
-  </script>
 </head>
 <body>
   <div id="nav">
-    <a href="pick.html">Submit Pick</a> |
-    <a href="leaderboard.html">Leaderboard</a> |
-    <a href="matrix.html">Matrix</a> |
+    <a href="/home.html">Home</a> |
+    <a href="/leaderboard.html">Leaderboard</a> |
+    <a href="/matrix.html">Matrix</a> |
     <button id="logoutBtn">Logout</button>
   </div>
-  <h1 id="welcome">Welcome</h1>
-  <div id="countdownBox" style="margin: 1em 0; font-weight: bold;"></div>
-  <p>This is your league home page. Use the nav above to explore your picks and standings.</p>
 
-  <h2>Your Picks</h2>
-  <table id="userPicksTable" style="width: 100%; border-collapse: collapse;">
-    <thead>
-      <tr>
-        <th style="text-align:left; border-bottom: 2px solid #ccc;">Week</th>
-        <th style="text-align:left; border-bottom: 2px solid #ccc;">Team</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
+  <h1 style="text-align:center;">Welcome to the Shotgun League</h1>
+
+  <div id="currentPicks">
+    <h2>This Week's Picks</h2>
+    <div id="picksList">Loading...</div>
+  </div>
 </body>
 </html>
