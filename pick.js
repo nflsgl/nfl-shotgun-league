@@ -16,16 +16,17 @@ document.addEventListener('DOMContentLoaded', async function () {
   const confirmBox = document.getElementById('confirmBox');
   let usedTeams = [];
 
-  // Fetch previously used teams
-  try {
-    const res = await fetch(`/.netlify/functions/fetchUserPicks?username=${encodeURIComponent(user)}`);
-    const picks = await res.json();
-
-    console.log("User picks:", picks);
-    usedTeams = picks.map(p => p.team.toLowerCase());
-    console.log("Used teams for user:", usedTeams);
-  } catch (err) {
-    console.error("Error fetching used teams:", err);
+  async function loadUsedTeams() {
+    try {
+      const res = await fetch(`/.netlify/functions/fetchUserPicks?username=${encodeURIComponent(user)}`);
+      const picks = await res.json();
+      console.log("User picks:", picks);
+      usedTeams = picks.map(p => p.team.toLowerCase());
+      console.log("Used teams for user:", usedTeams);
+    } catch (err) {
+      console.error("Error fetching used teams:", err);
+      usedTeams = [];
+    }
   }
 
   // Auto-select current week
@@ -44,35 +45,48 @@ document.addEventListener('DOMContentLoaded', async function () {
   if (!currentWeek) currentWeek = Object.keys(schedule).pop();
   weekSelect.value = currentWeek;
 
-  // Populate team list
-  weekSelect.addEventListener('change', () => {
-    const week = weekSelect.value;
+  function populateTeamsForWeek(week) {
     teamSelect.innerHTML = '<option value="">-- Choose a team --</option>';
-
     const matchups = schedule[week] || [];
+    const teamOptions = [];
 
     matchups.forEach(game => {
       [game.home, game.away].forEach(team => {
-        const option = document.createElement("option");
-        option.value = team;
+        const opp = team === game.home ? game.away : game.home;
+        const location = team === game.home ? 'vs' : '@';
+        const label = `${team} (${location} ${opp})`;
         const alreadyUsed = usedTeams.includes(team.toLowerCase());
 
-        if (alreadyUsed) {
-          option.disabled = true;
-          option.style.color = "#aaa";
-          option.style.textDecoration = "line-through";
-          option.textContent = `❌ ${team}`;
-        } else {
-          option.textContent = team;
-        }
-
-        teamSelect.appendChild(option);
+        teamOptions.push({
+          value: team,
+          label: alreadyUsed ? `❌ ${label}` : label,
+          disabled: alreadyUsed
+        });
       });
     });
-  });
 
-  // Trigger the initial team load
-  weekSelect.dispatchEvent(new Event("change"));
+    // Sort alphabetically by value (team name)
+    teamOptions.sort((a, b) => a.value.localeCompare(b.value));
+
+    teamOptions.forEach(opt => {
+      const option = document.createElement('option');
+      option.value = opt.value;
+      option.textContent = opt.label;
+      if (opt.disabled) {
+        option.disabled = true;
+        option.style.color = "#aaa";
+        option.style.textDecoration = "line-through";
+      }
+      teamSelect.appendChild(option);
+    });
+  }
+
+  await loadUsedTeams();
+  populateTeamsForWeek(weekSelect.value);
+
+  weekSelect.addEventListener('change', () => {
+    populateTeamsForWeek(weekSelect.value);
+  });
 
   form.addEventListener('submit', async function (e) {
     e.preventDefault();
@@ -93,12 +107,14 @@ document.addEventListener('DOMContentLoaded', async function () {
 
       const result = await res.json();
       if (res.ok) {
-          confirmBox.style.display = 'block';
-          confirmBox.textContent = `✅ Pick submitted: ${team} for Week ${week}. Refreshing...`;
-          
-          setTimeout(() => {
-            window.location.reload();
-          }, 1500);
+        confirmBox.style.display = 'block';
+        confirmBox.textContent = `✅ Pick submitted: ${team} for Week ${week}`;
+        form.reset();
+        weekSelect.value = currentWeek;
+
+        // Re-fetch and reload picks
+        await loadUsedTeams();
+        populateTeamsForWeek(currentWeek);
       } else {
         throw new Error(result.error || 'Unknown error');
       }
