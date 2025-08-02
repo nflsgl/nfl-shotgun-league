@@ -93,11 +93,12 @@ document.addEventListener('DOMContentLoaded', async function () {
 
       const result = await res.json();
       if (res.ok) {
-        confirmBox.style.display = 'block';
-        confirmBox.textContent = `✅ Pick submitted: ${team} for Week ${week}`;
-        form.reset();
-        weekSelect.value = currentWeek;
-        teamSelect.innerHTML = '<option value="">-- Choose a team --</option>';
+          confirmBox.style.display = 'block';
+          confirmBox.textContent = `✅ Pick submitted: ${team} for Week ${week}. Refreshing...`;
+          
+          setTimeout(() => {
+            window.location.reload();
+          }, 1500);
       } else {
         throw new Error(result.error || 'Unknown error');
       }
