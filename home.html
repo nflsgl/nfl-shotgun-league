@@ -4,75 +4,58 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Home - Shotgun League</title>
   <link rel="stylesheet" href="style.css">
-  <script src="/schedule.js" defer></script>
+  <script src="/schedule.js"></script>
   <script src="/home.js" defer></script>
+</head>
+<body>
+  <div id="nav">
+    <a href="/home.html">Home</a> |
+    <a href="/pick.html">Submit Pick</a> |
+    <a href="/leaderboard.html">Leaderboard</a> |
+    <a href="/matrix.html">Matrix</a> |
+    <button id="logoutBtn">Logout</button>
+  </div>
+
+  <h1>Welcome to the Shotgun League</h1>
+
+  <section id="currentPick" class="card">
+    <!-- Filled by home.js -->
+  </section>
+
+  <section id="pastPicks" class="card">
+    <!-- Filled by home.js -->
+  </section>
+
   <style>
-    #nav {
-      padding: 10px;
-      text-align: center;
-    }
-
-    #nav a {
-      margin: 0 10px;
-      text-decoration: none;
-      font-weight: bold;
-    }
-
-    #currentPicks {
-      margin: 20px auto;
-      max-width: 600px;
-      padding: 10px;
-      background: #f0f0f0;
+    .card {
+      background: #f9f9f9;
+      padding: 15px;
       border-radius: 8px;
+      margin: 20px 0;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
 
     .pick-entry {
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      padding: 6px 0;
-      border-bottom: 1px solid #ccc;
-    }
-
-    .pick-entry:last-child {
-      border-bottom: none;
+      gap: 10px;
+      margin-bottom: 10px;
     }
 
     .team-logo {
-      width: 30px;
-      height: 30px;
-      object-fit: contain;
-      margin-right: 10px;
+      height: 32px;
+      width: auto;
     }
 
-    @media (max-width: 600px) {
-      #countdownSection {
-        display: none;
-      }
-
-      .pick-entry {
-        flex-direction: column;
-        align-items: flex-start;
-      }
+    #logoutBtn {
+      background: none;
+      border: none;
+      color: #00f;
+      text-decoration: underline;
+      cursor: pointer;
+      font: inherit;
+      padding: 0;
     }
   </style>
-</head>
-<body>
-  <div id="nav">
-      <a href="/home.html">Home</a> |
-      <a href="/pick.html">Submit Pick</a> |
-      <a href="/leaderboard.html">Leaderboard</a> |
-      <a href="/matrix.html">Matrix</a>
-      <button id="logoutBtn">Logout</button>
-</div>
-
-  </div>
-
-  <h1 style="text-align:center;">Welcome to the Shotgun League</h1>
-
-  <div id="currentPicks">
-    <h2>This Week's Picks</h2>
-    <div id="picksList">Loading...</div>
-  </div>
 </body>
 </html>
