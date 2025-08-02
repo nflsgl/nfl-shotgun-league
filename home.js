@@ -15,11 +15,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     window.location.href = '/index.html';
   });
 
-  const picksList = document.getElementById('picksList');
+  const currentPickDiv = document.getElementById('currentPick');
+  const pastPicksDiv = document.getElementById('pastPicks');
 
   try {
-    const res = await fetch('/.netlify/functions/fetchUserPicks');
-    const data = await res.json();
+    const res = await fetch(`/.netlify/functions/fetchUserPicks?username=${encodeURIComponent(user)}`);
+    const picks = await res.json();
+
+    if (!Array.isArray(picks)) throw new Error('Picks not in array format');
 
     const today = new Date();
     let currentWeek = null;
@@ -34,35 +37,45 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
       if (currentWeek) break;
     }
-
     if (!currentWeek) currentWeek = Object.keys(schedule).pop();
 
-    const thisWeekPicks = data
-      .filter(p => p.week == currentWeek)
-      .sort((a, b) => a.username.localeCompare(b.username));
+    // Show current week's pick
+    const thisWeekPick = picks.find(p => p.week == currentWeek);
+    currentPickDiv.innerHTML = thisWeekPick
+      ? `<div class="pick-entry">
+            <img class="team-logo" src="/logos/${thisWeekPick.team.toLowerCase().replace(/\s/g, '')}.png">
+            <span>Week ${currentWeek}: ${thisWeekPick.team}</span>
+         </div>`
+      : `<div class="pick-entry">No pick submitted yet for Week ${currentWeek}</div>`;
 
-    if (thisWeekPicks.length === 0) {
-      picksList.textContent = 'No picks submitted yet.';
-      return;
+    // Show past picks (excluding current week)
+    const pastPicks = picks
+      .filter(p => parseInt(p.week) < parseInt(currentWeek))
+      .sort((a, b) => parseInt(a.week) - parseInt(b.week));
+
+    pastPicksDiv.innerHTML = '<h3>Past Picks</h3>';
+    if (pastPicks.length === 0) {
+      pastPicksDiv.innerHTML += '<div>No past picks.</div>';
+    } else {
+      for (const pick of pastPicks) {
+        const div = document.createElement('div');
+        div.className = 'pick-entry';
+
+        const logo = document.createElement('img');
+        logo.className = 'team-logo';
+        logo.src = `/logos/${pick.team.toLowerCase().replace(/\s/g, '')}.png`;
+
+        const label = document.createElement('span');
+        label.textContent = `Week ${pick.week}: ${pick.team}`;
+
+        div.appendChild(logo);
+        div.appendChild(label);
+        pastPicksDiv.appendChild(div);
+      }
     }
-
-    picksList.innerHTML = '';
-    for (const pick of thisWeekPicks) {
-      const div = document.createElement('div');
-      div.className = 'pick-entry';
-
-      const logo = document.createElement('img');
-      logo.className = 'team-logo';
-      const logoName = pick.team.toLowerCase().replace(/\s/g, '');
-      logo.src = `/logos/${logoName}.png`; // Ensure you have logos named correctly
-
-      div.appendChild(logo);
-      div.append(`${pick.username}: ${pick.team}`);
-      picksList.appendChild(div);
-    }
-
   } catch (err) {
-    console.error('Failed to load picks:', err);
-    picksList.textContent = 'Error loading picks.';
+    console.error('Error loading picks:', err);
+    currentPickDiv.textContent = '⚠️ Error loading your pick.';
+    pastPicksDiv.textContent = '';
   }
 });
