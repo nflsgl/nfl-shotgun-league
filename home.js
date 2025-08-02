@@ -15,14 +15,47 @@ document.addEventListener('DOMContentLoaded', async () => {
     window.location.href = '/index.html';
   });
 
-  const currentPickDiv = document.getElementById('currentPick');
-  const pastPicksDiv = document.getElementById('pastPicks');
+  const currentPickBox = document.getElementById('currentPick');
+  const pastPicksBox = document.getElementById('pastPicks');
+
+  const teamLogoMap = {
+    "Cardinals": "cardinals",
+    "Falcons": "falcons",
+    "Ravens": "ravens",
+    "Bills": "bills",
+    "Panthers": "panthers",
+    "Bears": "bears",
+    "Bengals": "bengals",
+    "Browns": "browns",
+    "Cowboys": "cowboys",
+    "Broncos": "broncos",
+    "Lions": "lions",
+    "Packers": "packers",
+    "Texans": "texans",
+    "Colts": "colts",
+    "Jaguars": "jaguars",
+    "Chiefs": "chiefs",
+    "Raiders": "raiders",
+    "Chargers": "chargers",
+    "Rams": "rams",
+    "Dolphins": "dolphins",
+    "Vikings": "vikings",
+    "Patriots": "patriots",
+    "Saints": "saints",
+    "Giants": "giants",
+    "Jets": "jets",
+    "Eagles": "eagles",
+    "Steelers": "steelers",
+    "49ers": "49ers",
+    "Seahawks": "seahawks",
+    "Buccaneers": "buccaneers",
+    "Titans": "titans",
+    "Commanders": "commanders"
+  };
 
   try {
     const res = await fetch(`/.netlify/functions/fetchUserPicks?username=${encodeURIComponent(user)}`);
     const picks = await res.json();
-
-    if (!Array.isArray(picks)) throw new Error('Picks not in array format');
 
     const today = new Date();
     let currentWeek = null;
@@ -39,43 +72,48 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     if (!currentWeek) currentWeek = Object.keys(schedule).pop();
 
-    // Show current week's pick
+    // Show current pick
     const thisWeekPick = picks.find(p => p.week == currentWeek);
-    currentPickDiv.innerHTML = thisWeekPick
-      ? `<div class="pick-entry">
-            <img class="team-logo" src="/logos/${thisWeekPick.team.toLowerCase().replace(/\s/g, '')}.png">
-            <span>Week ${currentWeek}: ${thisWeekPick.team}</span>
-         </div>`
-      : `<div class="pick-entry">No pick submitted yet for Week ${currentWeek}</div>`;
-
-    // Show past picks (excluding current week)
-    const pastPicks = picks
-      .filter(p => parseInt(p.week) < parseInt(currentWeek))
-      .sort((a, b) => parseInt(a.week) - parseInt(b.week));
-
-    pastPicksDiv.innerHTML = '<h3>Past Picks</h3>';
-    if (pastPicks.length === 0) {
-      pastPicksDiv.innerHTML += '<div>No past picks.</div>';
+    if (thisWeekPick) {
+      currentPickBox.innerHTML = `
+        <p>You have selected <strong>${thisWeekPick.team}</strong> for Week ${currentWeek}.</p>
+        <p>If you want to change your pick, press <a href="pick.html">Submit Pick</a> and re-submit for this week.</p>
+        <p>Your pick will lock at kickoff (or Sunday at 1 pm).</p>
+      `;
     } else {
-      for (const pick of pastPicks) {
+      currentPickBox.innerHTML = `
+        <p>You have not yet submitted a pick for Week ${currentWeek}.</p>
+        <p>Head to <a href="pick.html">Submit Pick</a> to make your selection.</p>
+      `;
+    }
+
+    // Show prior picks
+    const past = picks.filter(p => p.week < currentWeek).sort((a, b) => a.week - b.week);
+    pastPicksBox.innerHTML = '';
+    if (past.length === 0) {
+      pastPicksBox.textContent = 'No picks from previous weeks.';
+    } else {
+      past.forEach(p => {
         const div = document.createElement('div');
         div.className = 'pick-entry';
 
         const logo = document.createElement('img');
         logo.className = 'team-logo';
-        logo.src = `/logos/${pick.team.toLowerCase().replace(/\s/g, '')}.png`;
+        const logoKey = teamLogoMap[p.team] || p.team.toLowerCase();
+        logo.src = `/logos/${logoKey}.png`;
+        logo.alt = p.team;
 
-        const label = document.createElement('span');
-        label.textContent = `Week ${pick.week}: ${pick.team}`;
+        const text = document.createElement('span');
+        text.textContent = `Week ${p.week}: ${p.team}`;
 
         div.appendChild(logo);
-        div.appendChild(label);
-        pastPicksDiv.appendChild(div);
-      }
+        div.appendChild(text);
+        pastPicksBox.appendChild(div);
+      });
     }
   } catch (err) {
     console.error('Error loading picks:', err);
-    currentPickDiv.textContent = '⚠️ Error loading your pick.';
-    pastPicksDiv.textContent = '';
+    currentPickBox.textContent = '⚠️ Failed to load current pick.';
+    pastPicksBox.textContent = '';
   }
 });
