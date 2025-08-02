@@ -1,0 +1,13 @@
+{
+  "name": "nfl-shotgun-league",
+  "version": "1.0.0",
+  "description": "Netlify functions for the NFL Shotgun League site",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "build": "echo 'No build script needed'"
+  },
+  "dependencies": {
+    "googleapis": "^132.0.0"
+  }
+}
