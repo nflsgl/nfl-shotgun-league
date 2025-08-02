@@ -1,4 +1,5 @@
 import { google } from 'googleapis';
+import querystring from 'querystring';
 
 export async function handler(event) {
   if (event.httpMethod !== 'POST') {
@@ -8,7 +9,16 @@ export async function handler(event) {
     };
   }
 
-  const { username, week, team } = JSON.parse(event.body || '{}');
+  const contentType = event.headers['content-type'] || '';
+  let data = {};
+
+  if (contentType.includes('application/json')) {
+    data = JSON.parse(event.body || '{}');
+  } else if (contentType.includes('application/x-www-form-urlencoded')) {
+    data = querystring.parse(event.body || '');
+  }
+
+  const { username, week, team } = data;
 
   if (!username || !week || !team) {
     return {
@@ -26,10 +36,9 @@ export async function handler(event) {
 
     const sheets = google.sheets({ version: 'v4', auth });
 
-    const spreadsheetId = '1C1Kh5h7Aj1pyFHJXFZB_JG3Nhbxfoyg-x4u6LUH6h0U'; // Your actual Sheet ID
+    const spreadsheetId = '1C1Kh5h7Aj1pyFHJXFZB_JG3Nhbxfoyg-x4u6LUH6h0U';
     const sheetName = 'Picks';
 
-    // Add new row
     await sheets.spreadsheets.values.append({
       spreadsheetId,
       range: `${sheetName}!A:C`,
