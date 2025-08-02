@@ -1,25 +1,37 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Leaderboard - Shotgun League</title>
-  <link rel="stylesheet" href="style.css">
-  <script>
-    document.addEventListener("DOMContentLoaded", function() {
-      const user = localStorage.getItem("user");
-      if (!user) {
-        window.location.href = "/nfl-shotgun-league/index.html";
-      }
-    });
-  </script>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div id="nav">
-    <a href="/nfl-shotgun-league/home.html">Home</a> |
-    <a href="/nfl-shotgun-league/pick.html">Submit Pick</a> |
-    <a href="/nfl-shotgun-league/matrix.html">Matrix</a>
-  </div>
-  <h1>Leaderboard</h1>
-  <!-- Leaderboard content goes here -->
+  <header>
+    <h1>🏆 Shotgun League Leaderboard</h1>
+    <nav>
+      <a href="home.html">Home</a>
+      <a href="pick.html">Submit Pick</a>
+      <a href="leaderboard.html">Leaderboard</a>
+      <a href="matrix.html">Matrix</a>
+      <button id="logoutBtn">Logout</button>
+    </nav>
+  </header>
+
+  <main>
+    <table id="leaderboardTable">
+      <thead>
+        <tr>
+          <th>Player</th>
+          <th>Points</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- JS will populate -->
+      </tbody>
+    </table>
+  </main>
+
+  <script src="leaderboard.js"></script>
 </body>
 </html>
