@@ -1,88 +1,74 @@
-import { google } from 'googleapis';
-import querystring from 'querystring';
+const { google } = require('googleapis');
+const sheets = google.sheets('v4');
 
-export async function handler(event) {
-  if (event.httpMethod !== 'POST') {
-    return {
-      statusCode: 405,
-      body: 'Method Not Allowed',
-    };
-  }
-
-  const contentType = event.headers['content-type'] || '';
-  let data = {};
-
-  if (contentType.includes('application/json')) {
-    data = JSON.parse(event.body || '{}');
-  } else if (contentType.includes('application/x-www-form-urlencoded')) {
-    data = querystring.parse(event.body || '');
-  }
-
-  const { username, week, team } = data;
-
-  if (!username || !week || !team) {
-    return {
-      statusCode: 400,
-      body: JSON.stringify({ error: 'Missing one or more required fields.' }),
-    };
-  }
-
+exports.handler = async function(event) {
   try {
-    const creds = JSON.parse(process.env.GOOGLE_CREDS);
+    const body = JSON.parse(event.body);
+    const { username, week, team } = body;
+
     const auth = new google.auth.GoogleAuth({
-      credentials: creds,
+      credentials: {
+        client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
+        private_key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+      },
       scopes: ['https://www.googleapis.com/auth/spreadsheets'],
     });
 
-    const sheets = google.sheets({ version: 'v4', auth });
-
-    const spreadsheetId = '1C1Kh5h7Aj1pyFHJXFZB_JG3Nhbxfoyg-x4u6LUH6h0U';
+    const client = await auth.getClient();
+    const spreadsheetId = process.env.GOOGLE_SHEET_ID;
     const sheetName = 'Picks';
 
-    // Load current data
-    const readRes = await sheets.spreadsheets.values.get({
+    // Get all existing data
+    const getResponse = await sheets.spreadsheets.values.get({
+      auth: client,
       spreadsheetId,
-      range: `${sheetName}!A2:C`,
+      range: `${sheetName}!A2:D`,
     });
 
-    const rows = readRes.data.values || [];
+    const rows = getResponse.data.values || [];
 
-    // Find if there's an existing pick for same username/week
-    const rowIndex = rows.findIndex(
-      row => row[0]?.toLowerCase() === username.toLowerCase() && row[1] == week
-    );
+    let updated = false;
 
-    if (rowIndex >= 0) {
-      // Update existing pick
-      await sheets.spreadsheets.values.update({
-        spreadsheetId,
-        range: `${sheetName}!A${rowIndex + 2}:C${rowIndex + 2}`,
-        valueInputOption: 'RAW',
-        requestBody: {
-          values: [[username, week, team]],
-        },
-      });
-    } else {
-      // Append new pick
+    // Try to find existing pick to overwrite
+    for (let i = 0; i < rows.length; i++) {
+      if (rows[i][0]?.toLowerCase() === username.toLowerCase() && rows[i][1] == week) {
+        const updateRange = `${sheetName}!C${i + 2}`;
+        await sheets.spreadsheets.values.update({
+          auth: client,
+          spreadsheetId,
+          range: updateRange,
+          valueInputOption: 'RAW',
+          requestBody: {
+            values: [[team]],
+          },
+        });
+        updated = true;
+        break;
+      }
+    }
+
+    // Otherwise, append a new row
+    if (!updated) {
       await sheets.spreadsheets.values.append({
+        auth: client,
         spreadsheetId,
-        range: `${sheetName}!A:C`,
+        range: `${sheetName}!A:D`,
         valueInputOption: 'RAW',
         requestBody: {
-          values: [[username, week, team]],
+          values: [[username, week, team, '']],
         },
       });
     }
 
     return {
       statusCode: 200,
-      body: JSON.stringify({ message: 'Pick saved successfully' }),
+      body: JSON.stringify({ success: true }),
     };
   } catch (err) {
-    console.error('Error saving pick:', err);
+    console.error('Error submitting pick:', err.message, err.stack);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: 'Failed to save pick' }),
+      body: JSON.stringify({ error: 'Failed to submit pick', message: err.message }),
     };
   }
-}
+};
