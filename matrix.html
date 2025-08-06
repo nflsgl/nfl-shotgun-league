@@ -1,28 +1,32 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Matrix - Shotgun League</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css" />
   <style>
     table.matrix {
       width: 100%;
       border-collapse: collapse;
       overflow-x: auto;
     }
-    table.matrix th, table.matrix td {
+
+    table.matrix th,
+    table.matrix td {
       border: 1px solid #ccc;
       padding: 4px;
       text-align: center;
       min-width: 48px;
     }
+
     table.matrix th {
       background: #f4f4f4;
       position: sticky;
       top: 0;
       z-index: 1;
     }
+
     .username-col {
       text-align: left;
       white-space: nowrap;
@@ -31,12 +35,14 @@
       background: #fff;
       z-index: 2;
     }
+
     .matrix-logo {
       width: 32px;
       height: auto;
     }
   </style>
 </head>
+
 <body>
   <header>
     <h1>🧠 Pick Matrix</h1>
@@ -52,5 +58,13 @@
   <main>
     <div style="overflow-x: auto;">
       <table class="matrix" id="matrixTable">
-        <!-- JS fills this in -->
-      </tabl
+        <!-- JS will populate this -->
+      </table>
+    </div>
+  </main>
+
+  <!-- IMPORTANT: load schedule.js before matrix.js -->
+  <script src="schedule.js"></script>
+  <script src="matrix.js"></script>
+</body>
+</html>
