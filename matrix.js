@@ -26,7 +26,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   const formatUsername = (username) => userMap[username] || username;
 
-  const currentTime = Date.now();
+  const currentTime = new Date("2025-09-10T12:00:00").getTime(); // fake time after Week 1 ends
 
   const teamKickoffMap = {}; // { week: { team: Date } }
 
