@@ -30,13 +30,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   const teamKickoffMap = {}; // { week: { team: Date } }
 
-  schedule.forEach(week => {
-    teamKickoffMap[week.week] = {};
-    week.games.forEach(game => {
-      const kickoff = new Date(game.kickoff);
-      const [away, home] = game.matchup.split(' @ ');
-      teamKickoffMap[week.week][away.toLowerCase()] = kickoff;
-      teamKickoffMap[week.week][home.toLowerCase()] = kickoff;
+  Object.entries(schedule).forEach(([week, games]) => {
+    teamKickoffMap[week] = {};
+    games.forEach(game => {
+      const kickoff = new Date(game.date);
+      const homeTeam = game.home.toLowerCase();
+      const awayTeam = game.away.toLowerCase();
+      teamKickoffMap[week][homeTeam] = kickoff;
+      teamKickoffMap[week][awayTeam] = kickoff;
     });
   });
 
