@@ -26,7 +26,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   const formatUsername = (username) => userMap[username] || username;
 
-  const currentTime = new Date("2025-09-10T12:00:00").getTime(); // fake time after Week 1 ends
+  // 🔧 FAKE CURRENT TIME for testing (after Week 1)
+  const currentTime = new Date("2025-09-10T12:00:00").getTime();
+
+  // Logo helper: "dallas cowboys" → "cowboys"
+  const getLogoFilename = (teamName) => {
+    return teamName.split(' ').pop();
+  };
 
   const teamKickoffMap = {}; // { week: { team: Date } }
 
@@ -34,10 +40,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     teamKickoffMap[week] = {};
     games.forEach(game => {
       const kickoff = new Date(game.date);
-      const homeTeam = game.home.toLowerCase();
-      const awayTeam = game.away.toLowerCase();
-      teamKickoffMap[week][homeTeam] = kickoff;
-      teamKickoffMap[week][awayTeam] = kickoff;
+      const home = game.home.toLowerCase();
+      const away = game.away.toLowerCase();
+      teamKickoffMap[week][home] = kickoff;
+      teamKickoffMap[week][away] = kickoff;
     });
   });
 
@@ -79,7 +85,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             cell.textContent = '🔒';
           } else {
             const img = document.createElement('img');
-            img.src = `logos/${pick.team}.png`;
+            img.src = `logos/${getLogoFilename(pick.team)}.png`;
             img.alt = pick.team;
             img.className = 'matrix-logo';
             if (pick.result === 'loss') img.style.textDecoration = 'line-through';
