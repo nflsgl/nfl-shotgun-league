@@ -1,49 +1,56 @@
-import { google } from 'googleapis';
+const { google } = require('googleapis');
+const sheets = google.sheets('v4');
 
-export async function handler(event) {
-  const username = event.queryStringParameters.username;
-  if (!username) {
-    return {
-      statusCode: 400,
-      body: JSON.stringify({ error: 'Missing username' }),
-      headers: { 'Access-Control-Allow-Origin': '*' },
-    };
-  }
-
-  const creds = JSON.parse(process.env.GOOGLE_CREDS); // ⬅️ pull from env var
-
-  const auth = new google.auth.GoogleAuth({
-    credentials: creds,
-    scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
-  });
-
-  const sheets = google.sheets({ version: 'v4', auth });
-
-  const spreadsheetId = '1C1Kh5h7Aj1pyFHJXFZB_JG3Nhbxfoyg-x4u6LUH6h0U';
-  const range = 'Picks!A2:C';
-
+exports.handler = async function (event) {
   try {
+    const { username } = event.queryStringParameters || {};
+
+    if (!username) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ error: 'Missing username' }),
+      };
+    }
+
+    const auth = new google.auth.GoogleAuth({
+      credentials: {
+        client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
+        private_key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+      },
+      scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
+    });
+
+    const client = await auth.getClient();
+
+    const spreadsheetId = process.env.GOOGLE_SHEET_ID;
+    const range = 'Picks!A2:D';
+
     const response = await sheets.spreadsheets.values.get({
+      auth: client,
       spreadsheetId,
       range,
     });
 
     const rows = response.data.values || [];
-    const userPicks = rows
+
+    const picks = rows
       .filter(row => row[0]?.toLowerCase() === username.toLowerCase())
-      .map(row => ({ week: row[1], team: row[2] }));
+      .map(row => ({
+        username: row[0]?.toLowerCase(),
+        week: row[1],
+        team: row[2],
+        result: row[3]?.toLowerCase() || '',
+      }));
 
     return {
       statusCode: 200,
-      body: JSON.stringify(userPicks),
-      headers: { 'Access-Control-Allow-Origin': '*' },
+      body: JSON.stringify(picks),
     };
   } catch (err) {
-    console.error(err);
+    console.error('Error fetching user picks:', err.message, err.stack);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: 'Failed to fetch picks' }),
-      headers: { 'Access-Control-Allow-Origin': '*' },
+      body: JSON.stringify({ error: 'Failed to fetch user picks', message: err.message }),
     };
   }
-}
+};
