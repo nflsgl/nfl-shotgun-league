@@ -46,7 +46,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const picks = await response.json();
 
     const allUsers = Object.keys(userMap).sort();
-    const weeks = schedule.map(w => w.week);
+    const weeks = Object.keys(schedule).sort((a, b) => Number(a) - Number(b));
 
     const matrix = {};
     allUsers.forEach(u => matrix[u] = {});
