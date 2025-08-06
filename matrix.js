@@ -1,0 +1,99 @@
+document.addEventListener('DOMContentLoaded', async () => {
+  const user = localStorage.getItem('user');
+  const loginTime = parseInt(localStorage.getItem('loginTime'), 10);
+  const now = Date.now();
+  const oneHour = 60 * 60 * 1000;
+
+  if (!user || !loginTime || now - loginTime > oneHour) {
+    localStorage.clear();
+    window.location.href = 'index.html';
+    return;
+  }
+
+  document.getElementById('logoutBtn').addEventListener('click', () => {
+    localStorage.clear();
+    window.location.href = 'index.html';
+  });
+
+  const userMap = {
+    alecb: 'Alec B.', aaronb: 'Aaron B.', bradd: 'Brad D.', bradg: 'Brad G.', bradh: 'Brad H.',
+    brianm: 'Brian M.', caln: 'Cal N.', carterb: 'Carter B.', chuckp: 'Chuck P.', davidh: 'David H.',
+    hunter: 'Hunter', ianf: 'Ian F.', jacobg: 'Jacob G.', jimc: 'Jim C.', joeo: 'Joe O.',
+    josha: 'Josh A.', justing: 'Justin G.', miked: 'Mike D.', mikek: 'Mike K.', mitchm: 'Mitch M.',
+    nickp: 'Nick P.', rileyb: 'Riley B.', ryanl: 'Ryan L.', taylorh: 'Taylor H.',
+    timb: 'Tim B.', tomw: 'Tom W.', trevorc: 'Trevor C.', zachw: 'Zach W.'
+  };
+
+  const formatUsername = (username) => userMap[username] || username;
+
+  const currentTime = Date.now();
+
+  const teamKickoffMap = {}; // { week: { team: Date } }
+
+  schedule.forEach(week => {
+    teamKickoffMap[week.week] = {};
+    week.games.forEach(game => {
+      const kickoff = new Date(game.kickoff);
+      const [away, home] = game.matchup.split(' @ ');
+      teamKickoffMap[week.week][away.toLowerCase()] = kickoff;
+      teamKickoffMap[week.week][home.toLowerCase()] = kickoff;
+    });
+  });
+
+  try {
+    const response = await fetch('/.netlify/functions/fetchAllPicks');
+    const picks = await response.json();
+
+    const allUsers = Object.keys(userMap).sort();
+    const weeks = schedule.map(w => w.week);
+
+    const matrix = {};
+    allUsers.forEach(u => matrix[u] = {});
+
+    picks.forEach(p => {
+      const uname = p.username.toLowerCase();
+      if (!matrix[uname]) return;
+      matrix[uname][p.week] = {
+        team: p.team?.toLowerCase(),
+        result: p.result
+      };
+    });
+
+    const table = document.getElementById('matrixTable');
+    const headerRow = document.createElement('tr');
+    headerRow.innerHTML = `<th class="username-col">Player</th>` + weeks.map(w => `<th>Week ${w}</th>`).join('');
+    table.appendChild(headerRow);
+
+    allUsers.forEach(username => {
+      const row = document.createElement('tr');
+      const displayName = formatUsername(username);
+      row.innerHTML = `<td class="username-col">${displayName}</td>`;
+
+      weeks.forEach(week => {
+        const cell = document.createElement('td');
+        const pick = matrix[username][week];
+        if (pick?.team) {
+          const kickoff = teamKickoffMap[week]?.[pick.team];
+          if (kickoff && currentTime < kickoff.getTime()) {
+            cell.textContent = '🔒';
+          } else {
+            const img = document.createElement('img');
+            img.src = `logos/${pick.team}.png`;
+            img.alt = pick.team;
+            img.className = 'matrix-logo';
+            if (pick.result === 'loss') img.style.textDecoration = 'line-through';
+            cell.appendChild(img);
+          }
+        } else {
+          cell.textContent = ''; // No pick
+        }
+        row.appendChild(cell);
+      });
+
+      table.appendChild(row);
+    });
+
+  } catch (err) {
+    console.error('Error loading matrix:', err);
+  }
+});
