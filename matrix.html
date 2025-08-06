@@ -1,25 +1,56 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Matrix - Shotgun League</title>
   <link rel="stylesheet" href="style.css">
-  <script>
-    document.addEventListener("DOMContentLoaded", function() {
-      const user = localStorage.getItem("user");
-      if (!user) {
-        window.location.href = "/nfl-shotgun-league/index.html";
-      }
-    });
-  </script>
+  <style>
+    table.matrix {
+      width: 100%;
+      border-collapse: collapse;
+      overflow-x: auto;
+    }
+    table.matrix th, table.matrix td {
+      border: 1px solid #ccc;
+      padding: 4px;
+      text-align: center;
+      min-width: 48px;
+    }
+    table.matrix th {
+      background: #f4f4f4;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+    .username-col {
+      text-align: left;
+      white-space: nowrap;
+      position: sticky;
+      left: 0;
+      background: #fff;
+      z-index: 2;
+    }
+    .matrix-logo {
+      width: 32px;
+      height: auto;
+    }
+  </style>
 </head>
 <body>
-  <div id="nav">
-    <a href="/nfl-shotgun-league/home.html">Home</a> |
-    <a href="/nfl-shotgun-league/pick.html">Submit Pick</a> |
-    <a href="/nfl-shotgun-league/leaderboard.html">Leaderboard</a>
-  </div>
-  <h1>Pick Matrix</h1>
-  <!-- Matrix content goes here -->
-</body>
-</html>
+  <header>
+    <h1>🧠 Pick Matrix</h1>
+    <nav>
+      <a href="home.html">Home</a>
+      <a href="pick.html">Submit Pick</a>
+      <a href="leaderboard.html">Leaderboard</a>
+      <a href="matrix.html">Matrix</a>
+      <button id="logoutBtn">Logout</button>
+    </nav>
+  </header>
+
+  <main>
+    <div style="overflow-x: auto;">
+      <table class="matrix" id="matrixTable">
+        <!-- JS fills this in -->
+      </tabl
