@@ -32,7 +32,7 @@ document.addEventListener('DOMContentLoaded', function () {
     "timb": "lincoln",
     "tomw": "chrysler",
     "trevorc": "mini",
-    "zackt": "daewoo"
+    "zackt": "daewoo",
     "zachw": "fiat"
   };
 
