@@ -14,6 +14,7 @@ document.addEventListener('DOMContentLoaded', function () {
     "carterb": "bmw",
     "chuckp": "audi",
     "davidh": "volvo",
+    "dmatt": "saturn",
     "hunter": "dodge",
     "ianf": "gmc",
     "jacobg": "jeep",
@@ -31,6 +32,7 @@ document.addEventListener('DOMContentLoaded', function () {
     "timb": "lincoln",
     "tomw": "chrysler",
     "trevorc": "mini",
+    "zackt": "daewoo"
     "zachw": "fiat"
   };
 
