@@ -2,10 +2,10 @@
 const { google } = require('googleapis');
 const sheets = google.sheets('v4');
 
-// ✅ keep your path as-is if schedule.js sits next to this file
+// keep this path if schedule.js sits next to this file
 const schedule = require('./schedule.js');
 
-// ---- JSON response helper (so every path returns real JSON) ----
+// ---------- helpers ----------
 const jres = (statusCode, obj) => ({
   statusCode,
   headers: {
@@ -18,16 +18,27 @@ const jres = (statusCode, obj) => ({
   body: JSON.stringify(obj),
 });
 
+// normalize strings (trim, collapse spaces, handle NBSP, lowercase)
+const NBSP = /\u00A0/g;
+const canon = (s) =>
+  (s ?? '')
+    .toString()
+    .replace(NBSP, ' ')
+    .trim()
+    .replace(/\s+/g, ' ')
+    .toLowerCase();
+
+// accept "1" or "Week 1 (Sep 5–9)" etc.
+const normWeek = (w) => {
+  const raw = (w ?? '').toString();
+  const m = raw.match(/\d+/);
+  return m ? m[0] : raw.trim();
+};
+
 exports.handler = async function (event) {
   try {
-    // Allow CORS preflight (harmless even if not needed)
-    if (event.httpMethod === 'OPTIONS') {
-      return jres(200, { ok: true });
-    }
-
-    if (event.httpMethod !== 'POST') {
-      return jres(405, { error: 'Method Not Allowed' });
-    }
+    if (event.httpMethod === 'OPTIONS') return jres(200, { ok: true });
+    if (event.httpMethod !== 'POST') return jres(405, { error: 'Method Not Allowed' });
 
     // Parse body (supports JSON or x-www-form-urlencoded)
     const headers = event.headers || {};
@@ -44,9 +55,9 @@ exports.handler = async function (event) {
       body = Object.fromEntries(new URLSearchParams(event.body || ''));
     }
 
-    const username = String(body.username || '').trim().toLowerCase();
-    const week     = String(body.week || '').trim();     // keep as string to match schedule keys like "1"
-    const team     = String(body.team || '').trim().toLowerCase();
+    const username = canon(body.username);
+    const week = normWeek(body.week);           // <-- tolerant week parsing
+    const team = canon(body.team);
 
     if (!username || !week || !team) {
       return jres(400, { error: 'Missing username, week, or team' });
@@ -56,8 +67,8 @@ exports.handler = async function (event) {
     const getKickoff = (wk, teamLower) => {
       const games = schedule[wk] || [];
       const g = games.find((x) => {
-        const home = String(x.home || '').toLowerCase();
-        const away = String(x.away || '').toLowerCase();
+        const home = canon(x.home);
+        const away = canon(x.away);
         return home === teamLower || away === teamLower;
       });
       if (!g) return null;
@@ -68,8 +79,15 @@ exports.handler = async function (event) {
     // 1) Block if NEW team’s kickoff has already passed
     const newKick = getKickoff(week, team);
     if (!newKick) {
-      return jres(400, { error: 'Unknown team/game for that week' });
+      // helpfully report what teams the backend expected for this week
+      const wGames = schedule[week] || [];
+      const expected = wGames.flatMap(g => [g.home, g.away]);
+      return jres(400, {
+        error: 'Unknown team/game for that week',
+        debug: { week, receivedTeam: body.team, expectedTeams: expected },
+      });
     }
+
     const now = Date.now();
     if (now >= newKick.getTime()) {
       return jres(403, { error: 'Locked: new pick’s kickoff has passed' });
@@ -101,11 +119,11 @@ exports.handler = async function (event) {
     let existingTeam = null;
 
     for (let i = 0; i < rows.length; i++) {
-      const rowUser = (rows[i][0] || '').toLowerCase();
-      const rowWeek = String(rows[i][1] || '').trim();
+      const rowUser = canon(rows[i][0]);
+      const rowWeek = normWeek(rows[i][1]);
       if (rowUser === username && rowWeek === week) {
         existingRowIndex = i; // 0-based for A2:D result set
-        existingTeam = String(rows[i][2] || '').toLowerCase();
+        existingTeam = canon(rows[i][2]);
         break;
       }
     }
@@ -140,7 +158,7 @@ exports.handler = async function (event) {
 
     return jres(200, { success: true });
   } catch (err) {
-    console.error('Error submitting pick:', err.message, err.stack);
-    return jres(500, { error: 'Failed to submit pick', message: err.message });
+    console.error('Error submitting pick:', err);
+    return jres(500, { error: 'Failed to submit pick', message: String(err?.message || err) });
   }
 };
