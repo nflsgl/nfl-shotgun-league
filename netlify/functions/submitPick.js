@@ -2,27 +2,54 @@
 const { google } = require('googleapis');
 const sheets = google.sheets('v4');
 
-// ✅ bring the schedule into the backend (place schedule.json next to this file in your repo)
+// ✅ keep your path as-is if schedule.js sits next to this file
 const schedule = require('./schedule.js');
+
+// ---- JSON response helper (so every path returns real JSON) ----
+const jres = (statusCode, obj) => ({
+  statusCode,
+  headers: {
+    'Content-Type': 'application/json',
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Allow-Methods': 'POST,OPTIONS',
+    'Cache-Control': 'no-store',
+  },
+  body: JSON.stringify(obj),
+});
 
 exports.handler = async function (event) {
   try {
+    // Allow CORS preflight (harmless even if not needed)
+    if (event.httpMethod === 'OPTIONS') {
+      return jres(200, { ok: true });
+    }
+
     if (event.httpMethod !== 'POST') {
-      return { statusCode: 405, body: 'Method Not Allowed' };
+      return jres(405, { error: 'Method Not Allowed' });
     }
 
     // Parse body (supports JSON or x-www-form-urlencoded)
-    const ct = (event.headers['content-type'] || '').toLowerCase();
-    const body = ct.includes('application/json')
-      ? JSON.parse(event.body || '{}')
-      : Object.fromEntries(new URLSearchParams(event.body || ''));
+    const headers = event.headers || {};
+    const ct = (headers['content-type'] || headers['Content-Type'] || '').toLowerCase();
+
+    let body = {};
+    if (ct.includes('application/json')) {
+      try {
+        body = JSON.parse(event.body || '{}');
+      } catch {
+        return jres(400, { error: 'Invalid JSON body' });
+      }
+    } else {
+      body = Object.fromEntries(new URLSearchParams(event.body || ''));
+    }
 
     const username = String(body.username || '').trim().toLowerCase();
     const week     = String(body.week || '').trim();     // keep as string to match schedule keys like "1"
     const team     = String(body.team || '').trim().toLowerCase();
 
     if (!username || !week || !team) {
-      return { statusCode: 400, body: 'Missing username, week, or team' };
+      return jres(400, { error: 'Missing username, week, or team' });
     }
 
     // Helper: find kickoff Date for a given (week, team)
@@ -41,11 +68,11 @@ exports.handler = async function (event) {
     // 1) Block if NEW team’s kickoff has already passed
     const newKick = getKickoff(week, team);
     if (!newKick) {
-      return { statusCode: 400, body: 'Unknown team/game for that week' };
+      return jres(400, { error: 'Unknown team/game for that week' });
     }
     const now = Date.now();
     if (now >= newKick.getTime()) {
-      return { statusCode: 403, body: 'Locked: new pick’s kickoff has passed' };
+      return jres(403, { error: 'Locked: new pick’s kickoff has passed' });
     }
 
     // Sheets auth
@@ -87,7 +114,7 @@ exports.handler = async function (event) {
     if (existingTeam) {
       const oldKick = getKickoff(week, existingTeam);
       if (oldKick && now >= oldKick.getTime()) {
-        return { statusCode: 403, body: 'Locked: existing pick already kicked off' };
+        return jres(403, { error: 'Locked: existing pick already kicked off' });
       }
     }
 
@@ -111,12 +138,9 @@ exports.handler = async function (event) {
       });
     }
 
-    return { statusCode: 200, body: JSON.stringify({ success: true }) };
+    return jres(200, { success: true });
   } catch (err) {
     console.error('Error submitting pick:', err.message, err.stack);
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ error: 'Failed to submit pick', message: err.message }),
-    };
+    return jres(500, { error: 'Failed to submit pick', message: err.message });
   }
 };
