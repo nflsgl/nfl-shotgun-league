@@ -18,8 +18,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   const userMap = {
     alecb: 'Alec B.', aaronb: 'Aaron B.', bradd: 'Brad D.', bradg: 'Brad G.', bradh: 'Brad H.',
     brianm: 'Brian M.', caln: 'Cal N.', carterb: 'Carter B.', chuckp: 'Chuck P.', davidh: 'David H.',
-    dmatt: 'D-Matt', hunter: 'Hunter', ianf: 'Ian F.', jacobg: 'Jacob G.', jimc: 'Jim C.', joeo: 'Joe O.',
-    josha: 'Josh A.', justing: 'Justin G.', miked: 'Mike D.', mikek: 'Mike K.', mitchm: 'Mitch M.',
+    dmatt: 'D-Matt', hunter: 'Hunter', ianf: 'Ian F.', jacobg: 'Jacob G.', joseph: 'Joe O.',
+    joshua: 'Josh A.', justing: 'Justin G.', miked: 'Mike D.', mikek: 'Mike K.', mitchm: 'Mitch M.',
     nickp: 'Nick P.', rileyb: 'Riley B.', ryanl: 'Ryan L.', taylorh: 'Taylor H.',
     timb: 'Tim B.', tomw: 'Tom W.', trevorc: 'Trevor C.', zackt: 'Zack T.', zachw: 'Zach W.'
   };
