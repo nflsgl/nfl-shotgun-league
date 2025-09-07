@@ -3,7 +3,7 @@ const { google } = require('googleapis');
 const sheets = google.sheets('v4');
 
 // ✅ bring the schedule into the backend (place schedule.json next to this file in your repo)
-const schedule = require('./schedule.json');
+const schedule = require('./schedule.js');
 
 exports.handler = async function (event) {
   try {
