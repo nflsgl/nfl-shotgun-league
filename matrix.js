@@ -148,4 +148,72 @@ document.addEventListener('DOMContentLoaded', async () => {
     matrix[uname][wk] = {
       team: (p.team || '').toLowerCase(),
       teamRaw: p.team || '',
-      result: normalizeRes
+      result: normalizeResult(p.result)
+    };
+  }
+
+  // -----------------------------
+  // Render table
+  // -----------------------------
+  // Header
+  const headerRow = document.createElement('tr');
+  headerRow.innerHTML =
+    `<th class="username-col">Player</th>` +
+    weeks.map(w => `<th>Week ${w}</th>`).join('');
+  tableEl.appendChild(headerRow);
+
+  // Rows
+  for (const username of allUsers) {
+    const row = document.createElement('tr');
+    const displayName = formatUsername(username);
+    const nameCell = document.createElement('td');
+    nameCell.className = 'username-col';
+    nameCell.textContent = displayName;
+    row.appendChild(nameCell);
+
+    for (const week of weeks) {
+      const td = document.createElement('td');
+      const pick = matrix[username][week];
+
+      if (!pick || !pick.team) {
+        td.className = 'cell-empty';
+        row.appendChild(td);
+        continue;
+      }
+
+      // Lock until kickoff for that team's game
+      const kickoff = teamKickoffMap[week]?.[pick.team];
+      const locked = kickoff && currentTime < kickoff.getTime();
+
+      if (locked) {
+        td.className = 'cell-pend';
+        td.textContent = '🔒';
+      } else {
+        // After kickoff: show logo + background color by result
+        td.className = classForResult(pick.result);
+
+        const img = document.createElement('img');
+        img.className = 'matrix-logo';
+        img.alt = pick.teamRaw || pick.team;
+
+        const filename = getLogoFilename(pick.teamRaw || pick.team);
+        img.src = `logos/${filename}.png`;
+
+        td.appendChild(img);
+      }
+
+      row.appendChild(td);
+    }
+
+    tableEl.appendChild(row);
+  }
+
+  // -----------------------------
+  // Utils
+  // -----------------------------
+  function injectStyles(css) {
+    const style = document.createElement('style');
+    style.textContent = css;
+    document.head.appendChild(style);
+  }
+});
