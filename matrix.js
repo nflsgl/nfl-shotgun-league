@@ -9,7 +9,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   if (!user || !loginTime || now - loginTime > oneHour) {
     localStorage.clear();
-    // Use full path per project convention
     window.location.href = '/nfl-shotgun-league/index.html';
     return;
   }
@@ -23,7 +22,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   // -----------------------------
-  // Roster (current usernames → pretty display)
+  // User roster map
   // -----------------------------
   const userMap = {
     mikek: 'Mike K.', carterb: 'Carter B.', caln: 'Cal N.', davidh: 'David H.', chuckp: 'Chuck P.',
@@ -36,40 +35,82 @@ document.addEventListener('DOMContentLoaded', async () => {
   const formatUsername = (username) => userMap[username] || username;
 
   // -----------------------------
-  // Style injection (background colors, layout, lock overlay)
+  // Style injection
   // -----------------------------
   injectStyles(`
-    #matrixTable { width: 100%; border-collapse: collapse; table-layout: fixed; }
-    #matrixTable th, #matrixTable td { border: 1px solid #ddd; padding: 6px; text-align: center; vertical-align: middle; }
-    #matrixTable th.username-col, #matrixTable td.username-col { position: sticky; left: 0; background: #fff; z-index: 1; }
-    #matrixTable th { position: sticky; top: 0; background: #fff; z-index: 2; }
+    .matrix-container {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    #matrixTable {
+      border-collapse: collapse;
+      width: 100%;
+      min-width: 1000px;
+      table-layout: fixed;
+    }
+    #matrixTable th, #matrixTable td {
+      border: 1px solid #ddd;
+      padding: 6px;
+      text-align: center;
+      vertical-align: middle;
+    }
+    #matrixTable th.username-col,
+    #matrixTable td.username-col {
+      position: sticky;
+      left: 0;
+      background: #fff;
+      z-index: 2;
+      min-width: 110px;
+    }
+    #matrixTable th {
+      position: sticky;
+      top: 0;
+      background: #fff;
+      z-index: 3;
+    }
 
     /* Cell states */
-    td.cell-win   { background-color: #c8e6c9; } /* light green */
-    td.cell-loss  { background-color: #ffcdd2; } /* light red */
-    td.cell-pend  { background-color: #eeeeee; } /* light gray (pending or locked) */
-    td.cell-empty { background-color: #f7f7f7; } /* no pick logged */
+    td.cell-win   { background-color: #c8e6c9; }
+    td.cell-loss  { background-color: #ffcdd2; }
+    td.cell-pend  { background-color: #eeeeee; }
+    td.cell-empty { background-color: #f7f7f7; }
 
-    /* Logo fit */
-    .matrix-logo { max-width: 80%; max-height: 48px; object-fit: contain; filter: drop-shadow(0 1px 1px rgba(0,0,0,0.2)); }
+    .matrix-logo {
+      max-width: 80%;
+      max-height: 48px;
+      object-fit: contain;
+      filter: drop-shadow(0 1px 1px rgba(0,0,0,0.2));
+    }
 
     /* Legend */
-    .legend { display: flex; gap: 12px; align-items: center; margin: 10px 0 14px; font-size: 14px; flex-wrap: wrap; }
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      margin: 10px 0 14px;
+      font-size: 14px;
+    }
     .legend-item { display: inline-flex; align-items: center; gap: 6px; }
     .legend-swatch { width: 16px; height: 16px; border: 1px solid #ccc; display: inline-block; }
     .swatch-win { background: #c8e6c9; }
     .swatch-loss { background: #ffcdd2; }
     .swatch-pend { background: #eeeeee; }
     .swatch-empty { background: #f7f7f7; }
+
+    /* Mobile tweaks */
+    @media (max-width: 600px) {
+      .matrix-logo { max-height: 32px; }
+      #matrixTable th, #matrixTable td {
+        padding: 4px;
+        font-size: 12px;
+      }
+    }
   `);
 
-  // Legend (optional, looks nice)
-  const tableEl = document.getElementById('matrixTable');
-  if (!tableEl) {
-    console.error('matrix.js: #matrixTable not found');
-    return;
-  }
-  tableEl.insertAdjacentHTML('beforebegin', `
+  // Add legend
+  const container = document.querySelector('.matrix-container') || document.body;
+  container.insertAdjacentHTML('beforebegin', `
     <div class="legend">
       <div class="legend-item"><span class="legend-swatch swatch-win"></span> Win</div>
       <div class="legend-item"><span class="legend-swatch swatch-loss"></span> Loss</div>
@@ -80,25 +121,21 @@ document.addEventListener('DOMContentLoaded', async () => {
   `);
 
   // -----------------------------
-  // Helpers: schedule → kickoff map, logos, result normalization
+  // Helpers
   // -----------------------------
   const currentTime = Date.now();
 
-  // schedule is assumed global, with weeks as keys and games like { home, away, date }
-  const teamKickoffMap = {}; // { [week]: { [teamLower]: Date } }
+  const teamKickoffMap = {};
   Object.entries(schedule).forEach(([week, games]) => {
     teamKickoffMap[week] = {};
     games.forEach(game => {
-      const kickoff = new Date(game.date); // expects ISO in schedule.js
-      const home = game.home.toLowerCase();
-      const away = game.away.toLowerCase();
-      teamKickoffMap[week][home] = kickoff;
-      teamKickoffMap[week][away] = kickoff;
+      const kickoff = new Date(game.date);
+      teamKickoffMap[week][game.home.toLowerCase()] = kickoff;
+      teamKickoffMap[week][game.away.toLowerCase()] = kickoff;
     });
   });
 
   const getLogoFilename = (teamName) => {
-    // "Detroit Lions" → "lions" (your logos folder uses last word lowercased)
     if (!teamName) return '';
     return teamName.trim().split(/\s+/).pop().toLowerCase();
   };
@@ -118,7 +155,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   };
 
   // -----------------------------
-  // Fetch all picks once
+  // Fetch picks
   // -----------------------------
   let picks;
   try {
@@ -131,7 +168,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   // -----------------------------
-  // Build user→week map
+  // Build matrix
   // -----------------------------
   const allUsers = Object.keys(userMap).sort();
   const weeks = Object.keys(schedule).map(n => Number(n)).sort((a, b) => a - b);
@@ -139,7 +176,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   const matrix = {};
   allUsers.forEach(u => (matrix[u] = {}));
 
-  // expecting picks like: { username, week, team, result }
   for (const p of Array.isArray(picks) ? picks : []) {
     const uname = String(p.username || '').toLowerCase();
     if (!matrix[uname]) continue;
@@ -155,20 +191,25 @@ document.addEventListener('DOMContentLoaded', async () => {
   // -----------------------------
   // Render table
   // -----------------------------
+  const tableEl = document.getElementById('matrixTable');
+  if (!tableEl) {
+    console.error('matrix.js: #matrixTable not found');
+    return;
+  }
+
   // Header
   const headerRow = document.createElement('tr');
   headerRow.innerHTML =
     `<th class="username-col">Player</th>` +
-    weeks.map(w => `<th>Week ${w}</th>`).join('');
+    weeks.map(w => `<th>W${w}</th>`).join('');
   tableEl.appendChild(headerRow);
 
   // Rows
   for (const username of allUsers) {
     const row = document.createElement('tr');
-    const displayName = formatUsername(username);
     const nameCell = document.createElement('td');
     nameCell.className = 'username-col';
-    nameCell.textContent = displayName;
+    nameCell.textContent = formatUsername(username);
     row.appendChild(nameCell);
 
     for (const week of weeks) {
@@ -181,7 +222,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         continue;
       }
 
-      // Lock until kickoff for that team's game
       const kickoff = teamKickoffMap[week]?.[pick.team];
       const locked = kickoff && currentTime < kickoff.getTime();
 
@@ -189,16 +229,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         td.className = 'cell-pend';
         td.textContent = '🔒';
       } else {
-        // After kickoff: show logo + background color by result
         td.className = classForResult(pick.result);
-
         const img = document.createElement('img');
         img.className = 'matrix-logo';
         img.alt = pick.teamRaw || pick.team;
-
-        const filename = getLogoFilename(pick.teamRaw || pick.team);
-        img.src = `logos/${filename}.png`;
-
+        img.src = `logos/${getLogoFilename(pick.teamRaw || pick.team)}.png`;
         td.appendChild(img);
       }
 
