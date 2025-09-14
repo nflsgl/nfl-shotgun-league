@@ -66,9 +66,9 @@ function parseTimeETTo24(timeET) {
   return { hh, mm };
 }
 
-// Resolve week object from your schedule structure
+// Resolve week games from your schedule
 function getWeekGames(week) {
-  // Your schedule is keyed by week index/string: schedule[week] = [{home, away, ...}, ...]
+  // Your schedule is keyed by "week" string: schedule[week] = [{home, away, date}, ...]
   return schedule[week] || null;
 }
 
@@ -97,19 +97,29 @@ function getKickoffEpochMsForGame(g) {
     if (!Number.isNaN(d.getTime())) return d.getTime();
   }
 
-  // 3) Fallback: { date: 'YYYY-MM-DD', timeET: '1:00 PM' } → interpret in America/New_York
-  if (g.date && g.timeET) {
-    const d = String(g.date).trim().match(/^(\d{4})-(\d{2})-(\d{2})$/);
-    const t = parseTimeETTo24(g.timeET);
-    if (d && t) {
-      const year = +d[1], month = +d[2], day = +d[3];
-      const asUtc = makeZonedDateUTC(year, month, day, t.hh, t.mm, LEAGUE_TZ);
+  // 3) Your current format: naive ISO without offset, e.g. "2025-09-14T13:00:00"
+  //    Interpret that wall clock in America/New_York.
+  if (g.date && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$/.test(g.date)) {
+    const [ymd, hms] = g.date.split('T'); // "2025-09-14", "13:00:00"
+    const [Y, M, D] = ymd.split('-').map(n => +n);
+    const [hh, mm] = hms.split(':').map(n => +n); // ignore seconds granularity
+    const asUtc = makeZonedDateUTC(Y, M, D, hh, mm, LEAGUE_TZ);
+    const ms = asUtc.getTime();
+    if (!Number.isNaN(ms)) return ms;
+  }
+
+  // 4) Fallback: { date: 'YYYY-MM-DD', timeET: '1:00 PM' }
+  if (g.date && /^\d{4}-\d{2}-\d{2}$/.test(g.date) && g.timeET) {
+    const [Y, M, D] = g.date.split('-').map(n => +n);
+    const tt = parseTimeETTo24(g.timeET);
+    if (tt) {
+      const asUtc = makeZonedDateUTC(Y, M, D, tt.hh, tt.mm, LEAGUE_TZ);
       const ms = asUtc.getTime();
       if (!Number.isNaN(ms)) return ms;
     }
   }
 
-  // 4) Absolute last resort: try Date(g.date) if it’s a fully qualified ISO string
+  // 5) Absolute last resort: try Date(g.date) only if it parses cleanly
   if (g.date) {
     const tryDate = new Date(g.date);
     if (!Number.isNaN(tryDate.getTime())) return tryDate.getTime();
