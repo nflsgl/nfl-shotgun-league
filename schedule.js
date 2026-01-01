@@ -1317,82 +1317,82 @@ const schedule = {
     {
       "home": "Atlanta Falcons",
       "away": "New Orleans Saints",
-      "date": "2025-01-04T13:00:00"
+      "date": "2026-01-04T13:00:00"
     },
     {
       "home": "Buffalo Bills",
       "away": "New York Jets",
-      "date": "2025-01-04T13:00:00"
+      "date": "2026-01-04T13:00:00"
     },
     {
       "home": "Chicago Bears",
       "away": "Detroit Lions",
-      "date": "2025-01-04T13:00:00"
+      "date": "2026-01-04T13:00:00"
     },
     {
       "home": "Cincinnati Bengals",
       "away": "Cleveland Browns",
-      "date": "2025-01-04T13:00:00"
+      "date": "2026-01-04T13:00:00"
     },
     {
       "home": "Denver Broncos",
       "away": "Los Angeles Chargers",
-      "date": "2025-01-04T13:00:00"
+      "date": "2026-01-04T13:00:00"
     },
     {
       "home": "Houston Texans",
       "away": "Indianapolis Colts",
-      "date": "2025-01-04T13:00:00"
+      "date": "2026-01-04T13:00:00"
     },
     {
       "home": "Jacksonville Jaguars",
       "away": "Tennessee Titans",
-      "date": "2025-01-04T13:00:00"
+      "date": "2026-01-04T13:00:00"
     },
     {
       "home": "Minnesota Vikings",
       "away": "Green Bay Packers",
-      "date": "2025-01-04T13:00:00"
+      "date": "2026-01-04T13:00:00"
     },
     {
       "home": "New England Patriots",
       "away": "Miami Dolphins",
-      "date": "2025-01-04T13:00:00"
+      "date": "2026-01-04T13:00:00"
     },
     {
       "home": "New York Giants",
       "away": "Dallas Cowboys",
-      "date": "2025-01-04T13:00:00"
+      "date": "2026-01-04T13:00:00"
     },
     {
       "home": "Philadelphia Eagles",
       "away": "Washington Commanders",
-      "date": "2025-01-04T13:00:00"
+      "date": "2026-01-04T13:00:00"
     },
     {
       "home": "Pittsburgh Steelers",
       "away": "Baltimore Ravens",
-      "date": "2025-01-04T13:00:00"
+      "date": "2026-01-04T13:00:00"
     },
     {
       "home": "Las Vegas Raiders",
       "away": "Kansas City Chiefs",
-      "date": "2025-01-04T13:00:00"
+      "date": "2026-01-04T13:00:00"
     },
     {
       "home": "Los Angeles Rams",
       "away": "Arizona Cardinals",
-      "date": "2025-01-04T13:00:00"
+      "date": "2026-01-04T13:00:00"
     },
     {
       "home": "San Francisco 49ers",
       "away": "Seattle Seahawks",
-      "date": "2025-01-04T13:00:00"
+      "date": "2026-01-04T13:00:00"
     },
     {
       "home": "Tampa Bay Buccaneers",
       "away": "Carolina Panthers",
-      "date": "2025-01-04T13:00:00"
+      "date": "2026-01-04T13:00:00"
     }
   ]
 };
